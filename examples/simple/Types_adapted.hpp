@@ -1,7 +1,6 @@
 // -*- mode: c++; c-basic-style: "bsd"; c-basic-offset: 4; -*-
 /*
  * Types_adapted.hpp
- * Copyright (C) Cátedra SAES-UMU 2012 <catedra-saes-umu@listas.um.es>
  *
  * GSIM is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
