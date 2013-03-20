@@ -31,8 +31,7 @@ class GenericConnection : public Connection
     Q_OBJECT
 public:
 
-    GenericConnection(
-            QObject * parent);
+    GenericConnection(QObject * parent);
     GenericConnection(
             ConnectionDescriptor_ptr descriptor = ConnectionDescriptor_ptr(),
             QObject * parent = 0);
@@ -41,9 +40,6 @@ public:
     /**
      * @brief Reimplementar para procesar los datos recibidos por la 
      *        conexión. 
-     *
-     * OJO: Será invocado en el hilo de la conexión, no en el hilo interno
-     *      del controlador.
      *
      * @param data Los datos recibidos.
      * @param size El tamaño de los datos recibidos.
@@ -63,6 +59,10 @@ public:
     virtual void send(const char * data, std::size_t size);
 
     virtual bool applyConfig(ConnectionConfig_ptr cfg);
+
+protected slots:
+
+    void readPendingData();
 
 protected:
 

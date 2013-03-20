@@ -21,21 +21,17 @@
 #include <QApplication>
 
 #include <gsim/qt/reflective/qvariant.hpp>
-
 #include <gsim/qt/constants.hpp>
 #include <gsim/core/descriptor_utils.hpp>
-
 // #include <gsim/qt/item/FilterModel.hpp>
-
 #include <gsim/core/descriptor.hpp>
 #include <gsim/core/holder.hpp>
 #include <gsim/core/event.hpp>
-
 #include <gsim/json/reflective.hpp>
-
 #include <gsim/qt/model/Connection.hpp>
 
 #include <iostream>
+#include <sstream>
 #include <algorithm>
 
 using namespace gsim::qt;

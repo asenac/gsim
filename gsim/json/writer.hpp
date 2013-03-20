@@ -19,7 +19,6 @@
 #ifndef GSIM_JSON_WRITER_HPP
 #define GSIM_JSON_WRITER_HPP
 
-#include <gsim/json/helper.hpp>
 #include <gsim/json/detail/json_writer.hpp>
 #include <ostream>
 
@@ -27,17 +26,6 @@ namespace gsim
 {
 namespace json 
 {
-
-template< typename Ostream, typename T >
-inline void write(Ostream& os, const T& t, bool indent = false);
-
-template< typename Ostream, typename T >
-inline void write(Ostream& os, const T& t, bool indent)
-{
-    typedef gsim::json::writer::json_writer< Ostream > writer_t;
-    writer_t w(os, indent);
-    helper::helper_write(w, t);
-}
 
 typedef gsim::json::writer::json_writer< std::ostream > ostream_writer_t;
 

@@ -18,6 +18,7 @@
 
 #include "json.hpp"
 #include <fstream>
+#include <vector>
 
 namespace gsim 
 {

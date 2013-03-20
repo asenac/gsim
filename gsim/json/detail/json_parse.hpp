@@ -23,6 +23,7 @@
 #include <deque>
 #include <exception> // Exceptions
 #include <stdexcept>
+#include <istream>
 #include <gsim/json/detail/json.hpp>
 
 namespace gsim

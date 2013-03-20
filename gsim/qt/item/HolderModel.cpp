@@ -27,6 +27,7 @@
 #include <gsim/json/reflective.hpp>
 
 #include <iostream>
+#include <sstream>
 #include <algorithm>
 
 using namespace gsim::qt;

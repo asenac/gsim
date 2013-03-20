@@ -88,3 +88,7 @@ bool GenericConnection::applyConfig(ConnectionConfig_ptr cfg)
     return res;
 }
 
+void GenericConnection::readPendingData()
+{
+}
+
