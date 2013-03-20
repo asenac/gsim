@@ -5,21 +5,12 @@ SET(GSIM_VERSION       ${${PROJECT_NAME}_VERSION})
 
 find_package(Qt4)
 
-set(Boost_USE_MULTITHREADED OFF)
-find_package(Boost 1.45.0 COMPONENTS system thread)
-
-if(NOT Boost_FOUND)
-    message(FATAL_ERROR "Boost not found!")
-else(NOT Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-endif(NOT Boost_FOUND)
-
 # Fichero version.hpp
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.hpp.in" 
     "${CMAKE_CURRENT_SOURCE_DIR}/version.hpp" IMMEDIATE @ONLY)
 
 set(EXPORTED_HEADERS
-	adapted.hpp
+    adapted.hpp
     types.hpp
     version.hpp
 
@@ -90,9 +81,6 @@ target_link_libraries(gsim ${gsim_LIBS})
 
 install(TARGETS gsim DESTINATION lib)
 install(TARGETS gsim_static DESTINATION lib)
-
-# gsim_io
-add_subdirectory(io)
 
 if (QT_FOUND)
     set(QT_USE_QTSCRIPT 1)

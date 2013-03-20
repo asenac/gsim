@@ -66,13 +66,6 @@ public:
 
 protected:
 
-    /**
-     * @brief Usa este método para notificar un error.
-     *
-     * @param err El error.
-     */
-    void processError(const std::string& err);
-
     class Data;
     Data * m_data;
 };

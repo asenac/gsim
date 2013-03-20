@@ -17,10 +17,10 @@
  */
 
 #include "GenericConnection.hpp"
-#include <gsim/io/Connection.hpp>
-#include <gsim/io/UDPConnection.hpp>
 #include <boost/bind.hpp>
 #include <memory>
+#include <QTcpSocket>
+#include <QUdpSocket>
 
 using namespace gsim::qt;
 
@@ -28,11 +28,12 @@ class GenericConnection::Data
 {
 public:
 
-    gsim::io::Connection_ptr connection;
+    typedef std::auto_ptr< QAbstractSocket > socket_ptr; 
+
+    socket_ptr connection;
 };
 
-GenericConnection::GenericConnection(
-        QObject * parent) : 
+GenericConnection::GenericConnection(QObject * parent) : 
     Connection(ConnectionDescriptor_ptr(), parent), m_data(new Data)
 {
 }
@@ -55,9 +56,9 @@ std::size_t GenericConnection::processData(const char * data, std::size_t size)
 
 void GenericConnection::send(const char * data, std::size_t size)
 {
-    if (m_data->connection)
+    if (m_data->connection.get())
     {
-        m_data->connection->send(data, size);
+        m_data->connection->write(data, size);
     }
 }
 
@@ -74,41 +75,16 @@ bool GenericConnection::applyConfig(ConnectionConfig_ptr cfg)
     }
     else
     {
-        // Para conexiones UDP se hacen dos dynamic_cast :S
         ::gsim::qt::UDPConnectionConfig * udpCfg = 
             dynamic_cast< ::gsim::qt::UDPConnectionConfig * >(cfg.get());
 
         if (!m_data->connection.get() && udpCfg)
         {
-            res = true;
-
-            std::auto_ptr< io::UDPConnection > udpCon (new io::UDPConnection());
-
-            udpCon->bind_and_connect(udpCfg->localHost.c_str(),
-                    udpCfg->localPort,
-                    udpCfg->remoteHost.c_str(),
-                    udpCfg->remotePort);
-
-            udpCon->set_callback(
-                    boost::bind(&GenericConnection::processData, this, _1, _2));
-            udpCon->set_error_callback(
-                    boost::bind(&GenericConnection::processError, this, _1));
-
-            m_data->connection.reset(udpCon.release());
-
-            setStatus( ::gsim::qt::kStatusConnected);
-
-            m_data->connection->start_read();
+            // res = true;
+            // TODO
         }
     }
 
     return res;
-}
-
-void GenericConnection::processError(const std::string& err)
-{
-    emit error(err.c_str());
-
-    // TODO comprobar estado
 }
 

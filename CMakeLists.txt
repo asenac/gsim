@@ -23,12 +23,7 @@ include(pkgconfig)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set(Boost_USE_MULTITHREADED OFF)
-find_package(Boost 1.45.0
-      REQUIRED COMPONENTS
-      serialization
-      thread
-      system
-)
+find_package(Boost 1.45.0)
 
 if(NOT Boost_FOUND)
     message(FATAL_ERROR "Boost not found!")

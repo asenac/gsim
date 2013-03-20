@@ -23,8 +23,8 @@ set(gsim_qt_EXPORTED_HEADERS
     model/GenericConnection.hpp
     model/Controller.hpp
     model/StatusManager.hpp
-	
-	# QWidgets
+    
+    # QWidgets
     widgets/TreeView.hpp
     widgets/ConnectionWidget.hpp
     widgets/CustomLayouts.hpp
@@ -100,7 +100,7 @@ set(gsim_qt_MOC_HDRS
     model/Controller.hpp
     model/StatusManager.hpp
 
-	# Widgets
+    # Widgets
     widgets/TreeView.hpp
     widgets/ConnectionWidget.hpp
     widgets/CustomLayouts.hpp
@@ -187,7 +187,7 @@ set(gsim_qt_SRCS
     script/ScriptEvaluator.cpp
     script/ScriptEngine.cpp
 
-	# Widgets
+    # Widgets
     widgets/TreeView.cpp
     widgets/ConnectionWidget.cpp
     widgets/CustomLayouts.cpp
@@ -254,17 +254,16 @@ set(gsim_qt_SRCS
 )
 
 set(gsim_qt_LIBS
-	${QT_LIBRARIES}
+    ${QT_LIBRARIES}
     ${Boost_THREAD_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
 
     gsim
-    gsim_io
 )
 
 foreach(_header ${gsim_qt_EXPORTED_HEADERS})
-	get_filename_component(_header_path ${_header} PATH)
-	install(FILES ${_header} DESTINATION include/gsim/qt/${_header_path}) 
+    get_filename_component(_header_path ${_header} PATH)
+    install(FILES ${_header} DESTINATION include/gsim/qt/${_header_path}) 
 endforeach()
 
 # NOTE: QT bug: https://bugreports.qt.nokia.com/browse/QTBUG-22829
