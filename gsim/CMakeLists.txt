@@ -3,8 +3,6 @@ SET(GSIM_MINOR_VERSION ${${PROJECT_NAME}_MINOR_VERSION})
 SET(GSIM_PATCH_LEVEL   ${${PROJECT_NAME}_PATCH_LEVEL})
 SET(GSIM_VERSION       ${${PROJECT_NAME}_VERSION})
 
-find_package(Qt4)
-
 # Fichero version.hpp
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.hpp.in" 
     "${CMAKE_CURRENT_SOURCE_DIR}/version.hpp" IMMEDIATE @ONLY)
@@ -83,11 +81,6 @@ install(TARGETS gsim DESTINATION lib)
 install(TARGETS gsim_static DESTINATION lib)
 
 if (QT_FOUND)
-    set(QT_USE_QTSCRIPT 1)
-    set(QT_USE_QTNETWORK 1)
-    set(QT_USE_QTSCRIPTTOOLS 1)
-    include(${QT_USE_FILE})
-
     # gsim_qt
     add_subdirectory(qt)
 

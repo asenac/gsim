@@ -12,20 +12,11 @@ set(GSIM_CORE_STATIC_LIBRARY
 set(GSIM_QT_STATIC_LIBRARY 
     gsim_qt_static)
 
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
-
-find_package(Boost 1.45.0)
-
-if(NOT Boost_FOUND)
-    message(FATAL_ERROR "Boost not found!")
-else()
-    include_directories(${Boost_INCLUDE_DIRS})
-endif()
-
 set(GSIM_REQUIRED_SHARED_LIBRARIES
     # Qt
     ${QT_LIBRARIES}
+    ${Boost_THREAD_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
     # gsim
     ${GSIM_CORE_LIBRARY}
     ${GSIM_QT_LIBRARY})
@@ -33,6 +24,8 @@ set(GSIM_REQUIRED_SHARED_LIBRARIES
 set(GSIM_REQUIRED_STATIC_LIBRARIES
     # Qt
     ${QT_LIBRARIES}
+    ${Boost_THREAD_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
     # gsim
     ${GSIM_CORE_STATIC_LIBRARY}
     ${GSIM_QT_STATIC_LIBRARY})

@@ -23,13 +23,22 @@ include(pkgconfig)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set(Boost_USE_MULTITHREADED OFF)
-find_package(Boost 1.45.0)
+find_package(Boost 1.45.0 REQUIRED COMPONENTS thread system)
 
 if(NOT Boost_FOUND)
     message(FATAL_ERROR "Boost not found!")
 else(NOT Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif(NOT Boost_FOUND)
+
+find_package(Qt4)
+
+if (QT_FOUND)
+    set(QT_USE_QTSCRIPT 1)
+    set(QT_USE_QTNETWORK 1)
+    set(QT_USE_QTSCRIPTTOOLS 1)
+    include(${QT_USE_FILE})
+endif()
 
 add_subdirectory(gsim)
 add_subdirectory(examples)
