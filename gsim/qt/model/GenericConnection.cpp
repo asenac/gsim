@@ -17,35 +17,52 @@
  */
 
 #include "GenericConnection.hpp"
-#include <boost/bind.hpp>
-#include <memory>
-#include <QTcpSocket>
-#include <QUdpSocket>
+#include "GenericConnection_Data.hpp"
+#include <iostream>
 
 using namespace gsim::qt;
 
-class GenericConnection::Data
+namespace  
 {
-public:
 
-    typedef std::auto_ptr< QAbstractSocket > socket_ptr; 
+ConnectionStatus translate(QAbstractSocket::SocketState st)
+{
+    std::cout << st << std::endl;
 
-    socket_ptr connection;
-};
+    ConnectionStatus res = kStatusDisconnected;
+
+    switch (st)
+    {
+        case QAbstractSocket::ConnectingState:
+        case QAbstractSocket::BoundState:
+            res = kStatusListening;
+            break;
+        case QAbstractSocket::ConnectedState:
+            res = kStatusConnected;
+            break;
+        default:
+            break;
+    }
+
+    return res;
+}
+
+} // namespace 
 
 GenericConnection::GenericConnection(QObject * parent) : 
-    Connection(ConnectionDescriptor_ptr(), parent), m_data(new Data)
+    Connection(ConnectionDescriptor_ptr(), parent), m_data(new Data(this))
 {
 }
 
 GenericConnection::GenericConnection(ConnectionDescriptor_ptr descriptor,
         QObject * parent) : 
-    Connection(descriptor, parent), m_data(new Data)
+    Connection(descriptor, parent), m_data(new Data(this))
 {
 }
 
 GenericConnection::~GenericConnection()
 {
+    m_data->connection.reset();
     delete m_data;
 }
 
@@ -56,7 +73,7 @@ std::size_t GenericConnection::processData(const char * data, std::size_t size)
 
 void GenericConnection::send(const char * data, std::size_t size)
 {
-    if (m_data->connection.get())
+    if (!m_data->connection.isNull())
     {
         m_data->connection->write(data, size);
     }
@@ -64,31 +81,92 @@ void GenericConnection::send(const char * data, std::size_t size)
 
 bool GenericConnection::applyConfig(ConnectionConfig_ptr cfg)
 {
+    return m_data->applyConfig(cfg);
+}
+
+bool GenericConnection::Data::applyConfig(ConnectionConfig_ptr cfg)
+{
     bool res = false;
 
     if (!cfg)
     {
-        m_data->connection.reset();
-        setStatus( ::gsim::qt::kStatusDisconnected);
+        connection.reset();
+        this_->setStatus( ::gsim::qt::kStatusDisconnected);
 
         res = true;
     }
-    else
+    else // if (connection.isNull())
     {
         ::gsim::qt::UDPConnectionConfig * udpCfg = 
             dynamic_cast< ::gsim::qt::UDPConnectionConfig * >(cfg.get());
 
-        if (!m_data->connection.get() && udpCfg)
+        if (udpCfg)
         {
-            // res = true;
-            // TODO
+            QUdpSocket * socket = new QUdpSocket(this);
+            connection.reset(socket);
+
+            const QHostAddress localHost(udpCfg->localHost.c_str());
+            const QHostAddress remoteHost(udpCfg->remoteHost.c_str());
+
+            socket->bind(localHost, udpCfg->localPort);
+            connection->connectToHost(remoteHost, udpCfg->remotePort);
+
+            connect(connection.data(), 
+                    SIGNAL(stateChanged(QAbstractSocket::SocketState)),
+                    this, 
+                    SLOT(stateChanged(QAbstractSocket::SocketState)));
+
+            connect(connection.data(),
+                    SIGNAL(readyRead()),
+                    this,
+                    SLOT(readPendingDataUDP()));
+
+            this_->setStatus(translate(connection->state()));
+
+            res = true;
+        }
+        else
+        {
+            ::gsim::qt::TCPConnectionConfig * tcpCfg = 
+                dynamic_cast< ::gsim::qt::TCPConnectionConfig * >(cfg.get());
+
+            if (tcpCfg)
+            {
+                // TODO
+            }
         }
     }
 
     return res;
 }
 
-void GenericConnection::readPendingData()
+void GenericConnection::Data::readPendingDataUDP()
 {
+    std::cout << __FUNCTION__ << std::endl;
+    if (!connection.isNull())
+    {
+        QUdpSocket * socket = 
+            static_cast< QUdpSocket * >(connection.data());
+
+        while (socket->hasPendingDatagrams())
+        {
+            int offset = buffer.size();
+            int avail = socket->pendingDatagramSize();
+
+            buffer.resize(offset + avail);
+
+            socket->readDatagram(buffer.data() + offset, avail);
+
+            std::size_t consume = 
+                this_->processData(buffer.data(), buffer.size());
+
+            buffer.resize(0);
+        }
+    }
 }
 
+void GenericConnection::Data::stateChanged(
+        QAbstractSocket::SocketState socketState)
+{
+    this_->setStatus(translate(socketState));
+}

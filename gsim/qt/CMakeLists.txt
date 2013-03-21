@@ -21,6 +21,7 @@ set(gsim_qt_EXPORTED_HEADERS
     model/Connection.hpp
     model/Connection.ipp
     model/GenericConnection.hpp
+    # model/GenericConnection_Data.hpp
     model/Controller.hpp
     model/StatusManager.hpp
     
@@ -97,6 +98,7 @@ set(gsim_qt_MOC_HDRS
     # Model
     model/Connection.hpp
     model/GenericConnection.hpp
+    model/GenericConnection_Data.hpp
     model/Controller.hpp
     model/StatusManager.hpp
 

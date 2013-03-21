@@ -60,13 +60,10 @@ public:
 
     virtual bool applyConfig(ConnectionConfig_ptr cfg);
 
-protected slots:
-
-    void readPendingData();
-
 protected:
 
     class Data;
+    friend class Data;
     Data * m_data;
 };
 
