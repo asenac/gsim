@@ -3,8 +3,15 @@ include(GSIMEnv.cmake)
 
 # GSIM examples
 set(GSIM_EXAMPLES
-    simple
+    empty
+    empty_connection
+    empty_connection_udp
     multiconnection
+    simple
+    simple_adapted
+    simple_custom_widget
+    simple_unsupported
+    status
 )
 
 foreach(example_ ${GSIM_EXAMPLES})
