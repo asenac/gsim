@@ -558,7 +558,7 @@ void MainWindow::showAboutGSIM()
     static const char * aboutText = 
         "GSIM Version " GSIM_VERSION "\n"
         "Build " __DATE__ "\n"
-        "Developed by: \n Andres Senac <a.senac@electronica-submarina.com>";
+        "Developed by: \n Andres Senac <andres@senac.es>";
 
     QMessageBox::about(this, "About GSIM", 
             aboutText);
