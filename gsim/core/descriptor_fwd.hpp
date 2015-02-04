@@ -27,8 +27,8 @@ namespace core
 {
 
 class descriptor_base;
-class descriptor_group;
-class connection_descriptor;
+struct descriptor_group;
+struct connection_descriptor;
 
 typedef const descriptor_base * 
     descriptor_ptr;

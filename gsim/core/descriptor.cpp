@@ -32,17 +32,17 @@ namespace core
 namespace detail 
 {
 
-template class bool_descriptor< bool >;
-template class primitive_descriptor< short >;
-template class primitive_descriptor< unsigned short >;
-template class primitive_descriptor< char >;
-template class primitive_descriptor< unsigned char >;
-template class primitive_descriptor< int32_t >;
-template class primitive_descriptor< uint32_t >;
-template class primitive_descriptor< int64_t >;
-template class primitive_descriptor< uint64_t >;
-template class primitive_descriptor< float >;
-template class primitive_descriptor< double >;
+template struct bool_descriptor< bool >;
+template struct primitive_descriptor< short >;
+template struct primitive_descriptor< unsigned short >;
+template struct primitive_descriptor< char >;
+template struct primitive_descriptor< unsigned char >;
+template struct primitive_descriptor< int32_t >;
+template struct primitive_descriptor< uint32_t >;
+template struct primitive_descriptor< int64_t >;
+template struct primitive_descriptor< uint64_t >;
+template struct primitive_descriptor< float >;
+template struct primitive_descriptor< double >;
 
 } // namespace detail
 } // namespace core
