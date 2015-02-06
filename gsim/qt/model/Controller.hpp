@@ -45,8 +45,6 @@ public slots:
     void messageSent(Message_ptr);
     void messageReceived(Message_ptr);
 
-    void createConnection(ConnectionConfig_ptr);
-
     void addConnection(Connection_ptr);
     void removeConnection(Connection_ptr);
 
@@ -66,8 +64,6 @@ protected slots:
     void notifyError(const QString&);
 
 protected:
-
-    virtual Connection_ptr doCreateConnection(ConnectionConfig_ptr);
 
     class Data;
     Data * m_data;

@@ -18,6 +18,7 @@
 
 #include "GenericConnection.hpp"
 #include "GenericConnection_Data.hpp"
+#include <iostream>
 
 using namespace gsim::qt;
 
@@ -160,7 +161,7 @@ void GenericConnection::Data::readPendingDataUDP()
 }
 
 void GenericConnection::Data::stateChanged(
-        QAbstractSocket::SocketState socketState)
+    QAbstractSocket::SocketState socketState)
 {
     this_->setStatus(translate(socketState));
 }

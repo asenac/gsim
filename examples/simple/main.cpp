@@ -16,7 +16,7 @@ class SimpleConnection : public gsim::qt::GenericConnection
 {
 public:
 
-    SimpleConnection() 
+    SimpleConnection()
     {
         // Establece el nombre de la conexión
         setName("Simple");
@@ -34,7 +34,7 @@ public:
         registerMethod< simple::HelloMsg >(&SimpleConnection::sendHelloMsg, this);
     }
 
-    // Método reimplementado para procesar los datos recibidos por la 
+    // Método reimplementado para procesar los datos recibidos por la
     // conexión
     std::size_t processData(const char * data, std::size_t size)
     {
@@ -44,7 +44,7 @@ public:
 
         // Notificamos la recepción del mensaje
         notifyMessageReceived("HELLO_MSG", msg);
-        
+
         // El mensaje entero se puede consumir
         return size;
     }
@@ -59,13 +59,12 @@ public:
     }
 };
 
-typedef boost::shared_ptr< SimpleConnection >
-    SimpleConnection_ptr;
+typedef boost::shared_ptr<SimpleConnection> SimpleConnection_ptr;
 
 int main(int argc, char ** argv)
 {
     // Inicialización
-    gsim::qt::Application app(argc, argv);	
+    gsim::qt::Application app(argc, argv);
 
     // Creamos la conexión
     SimpleConnection_ptr connection(new SimpleConnection());
@@ -76,4 +75,3 @@ int main(int argc, char ** argv)
     // Ejecución
     return app.exec();
 }
-

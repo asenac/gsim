@@ -70,16 +70,6 @@ void Controller::start()
     moveToThread(&m_data->thread);
 }
 
-void Controller::createConnection(ConnectionConfig_ptr cfg)
-{
-    Connection_ptr con;
-
-    if ((con = doCreateConnection(cfg)))
-    {
-        addConnection(con);
-    }
-}
-
 void Controller::addConnection(Connection_ptr con)
 {
     if (m_data->connectionsByName.find(con->name()) !=
@@ -148,11 +138,6 @@ void Controller::messageReceived(Message_ptr msg)
             emit messageReceived(it->second, msg);
         }
     }
-}
-
-Connection_ptr Controller::doCreateConnection(ConnectionConfig_ptr)
-{
-    return Connection_ptr();
 }
 
 Connection_ptr Controller::getConnection(const QString& name) const

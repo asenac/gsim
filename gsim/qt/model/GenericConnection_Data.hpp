@@ -29,9 +29,9 @@
 #include <QByteArray>
 #include <cassert>
 
-namespace gsim 
+namespace gsim
 {
-namespace qt 
+namespace qt
 {
 
 class GenericConnection::Data : public QObject
@@ -57,8 +57,8 @@ protected:
 
     friend class GenericConnection;
 
-    typedef QScopedPointer< QAbstractSocket > socket_ptr; 
-    typedef QScopedPointer< QTcpServer > server_ptr; 
+    typedef QScopedPointer< QAbstractSocket > socket_ptr;
+    typedef QScopedPointer< QTcpServer > server_ptr;
 
     GenericConnection * this_;
 

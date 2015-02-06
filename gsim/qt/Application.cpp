@@ -28,9 +28,7 @@ using namespace gsim::qt;
 class Application::Data
 {
 public:
-
-    Data(int& argc, char ** argv) :
-        app(argc, argv)
+    Data(int& argc, char** argv) : app(argc, argv)
     {
         ::gsim::qt::initialize();
 
@@ -42,8 +40,7 @@ public:
     MainWindow mainWindow;
 };
 
-Application::Application(int& argc, char ** argv) :
-    m_data(new Data(argc, argv))
+Application::Application(int& argc, char** argv) : m_data(new Data(argc, argv))
 {
 }
 
@@ -78,4 +75,3 @@ void Application::setDescription(const char * description)
 {
    m_data->mainWindow.setAboutText(description);
 }
-
