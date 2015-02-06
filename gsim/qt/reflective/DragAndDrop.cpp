@@ -25,8 +25,6 @@
 #include <sstream>
 #include <gsim/json/reflective.hpp>
 
-#include <iostream>
-
 using namespace gsim::qt;
 
 namespace  
@@ -141,9 +139,6 @@ bool Drag::eventFilter(QObject * obj, QEvent * event)
 
             if (w)
             {
-                std::cout << "No nulo!"  << std::endl;
-                std::cout << "Es reflective = " << !!dynamic_cast< ReflectiveWidget * >(w)  << std::endl;
-
                 if (dynamic_cast< ReflectiveWidget * >(w))
                 {
                     const QPoint pos = m_data->qwidget->mapFromGlobal(w->parentWidget()->mapToGlobal(w->pos()));

@@ -1183,43 +1183,34 @@ struct SemanticState
 {
     inline void new_null()
     {
-        //std::cout << "new null" << std::endl;
     }
 
     inline void new_double(double d)
     {
-        //std::cout << "new double: " << d << std::endl;
     }
 
     inline void new_string(std::string const& p)
     {
-        //std::cout << "new string: " << std::string(p.first,p.second)
-        //          <<  std::endl;
     }
 
     inline void new_bool(bool b)
     {
-        //std::cout << "new bool: " << b << std::endl;
     }
 
     inline void object_start()
     {
-        //std::cout << "object start" << std::endl;
     }
 
     inline void object_end()
     {
-        //std::cout << "object end" << std::endl;
     }
 
     inline void array_start()
     {
-        //std::cout << "array start" << std::endl;
     }
 
     inline void array_end()
     {
-        //std::cout << "array end" << std::endl;
     }
 };
 
