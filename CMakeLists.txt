@@ -4,8 +4,7 @@ project(idlmsg_gsim C CXX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-# Esto grabado a fuego
-add_definitions(-Wall)
+add_definitions(-Wall -Werror -Wno-deprecated-register -std=c++11)
 
 SET( ${PROJECT_NAME}_MAJOR_VERSION 2 )
 SET( ${PROJECT_NAME}_MINOR_VERSION 0 )

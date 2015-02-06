@@ -57,7 +57,7 @@ public slots:
     void saveStatus();
 
 protected:
-    class Data;
+    struct Data;
     Data * m_data;
 };
 

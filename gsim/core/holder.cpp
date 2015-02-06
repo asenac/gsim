@@ -81,7 +81,7 @@ holder_impl_base * holder::clone() const
 
 bool holder::is_valid() const
 {
-    return m_impl;
+    return !!m_impl;
 }
 
 bool holder::is_reference() const

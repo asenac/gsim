@@ -157,7 +157,7 @@ void GenericConnection::Data::readPendingDataUDP()
 
             socket->readDatagram(buffer.data() + offset, avail);
 
-            std::size_t consume = 
+            //std::size_t consume = 
                 this_->processData(buffer.data(), buffer.size());
 
             buffer.resize(0);
