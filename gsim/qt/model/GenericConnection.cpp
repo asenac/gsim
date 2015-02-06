@@ -18,17 +18,14 @@
 
 #include "GenericConnection.hpp"
 #include "GenericConnection_Data.hpp"
-#include <iostream>
 
 using namespace gsim::qt;
 
-namespace  
+namespace
 {
 
 ConnectionStatus translate(QAbstractSocket::SocketState st)
 {
-    std::cout << st << std::endl;
-
     ConnectionStatus res = kStatusDisconnected;
 
     switch (st)
@@ -47,15 +44,15 @@ ConnectionStatus translate(QAbstractSocket::SocketState st)
     return res;
 }
 
-} // namespace 
+} // namespace
 
-GenericConnection::GenericConnection(QObject * parent) : 
+GenericConnection::GenericConnection(QObject * parent) :
     Connection(ConnectionDescriptor_ptr(), parent), m_data(new Data(this))
 {
 }
 
 GenericConnection::GenericConnection(ConnectionDescriptor_ptr descriptor,
-        QObject * parent) : 
+        QObject * parent) :
     Connection(descriptor, parent), m_data(new Data(this))
 {
 }
@@ -97,12 +94,12 @@ bool GenericConnection::Data::applyConfig(ConnectionConfig_ptr cfg)
     }
     else // if (connection.isNull())
     {
-        ::gsim::qt::UDPConnectionConfig * udpCfg = 
+        ::gsim::qt::UDPConnectionConfig * udpCfg =
             dynamic_cast< ::gsim::qt::UDPConnectionConfig * >(cfg.get());
 
         if (udpCfg)
         {
-            QUdpSocket * socket = new QUdpSocket(this);
+            QUdpSocket* socket = new QUdpSocket(this);
             connection.reset(socket);
 
             const QHostAddress localHost(udpCfg->localHost.c_str());
@@ -111,14 +108,11 @@ bool GenericConnection::Data::applyConfig(ConnectionConfig_ptr cfg)
             socket->bind(localHost, udpCfg->localPort);
             connection->connectToHost(remoteHost, udpCfg->remotePort);
 
-            connect(connection.data(), 
-                    SIGNAL(stateChanged(QAbstractSocket::SocketState)),
-                    this, 
+            connect(connection.data(),
+                    SIGNAL(stateChanged(QAbstractSocket::SocketState)), this,
                     SLOT(stateChanged(QAbstractSocket::SocketState)));
 
-            connect(connection.data(),
-                    SIGNAL(readyRead()),
-                    this,
+            connect(connection.data(), SIGNAL(readyRead()), this,
                     SLOT(readPendingDataUDP()));
 
             this_->setStatus(translate(connection->state()));
@@ -127,7 +121,7 @@ bool GenericConnection::Data::applyConfig(ConnectionConfig_ptr cfg)
         }
         else
         {
-            ::gsim::qt::TCPConnectionConfig * tcpCfg = 
+            ::gsim::qt::TCPConnectionConfig * tcpCfg =
                 dynamic_cast< ::gsim::qt::TCPConnectionConfig * >(cfg.get());
 
             if (tcpCfg)
@@ -145,7 +139,7 @@ void GenericConnection::Data::readPendingDataUDP()
     std::cout << __FUNCTION__ << std::endl;
     if (!connection.isNull())
     {
-        QUdpSocket * socket = 
+        QUdpSocket * socket =
             static_cast< QUdpSocket * >(connection.data());
 
         while (socket->hasPendingDatagrams())
@@ -157,7 +151,7 @@ void GenericConnection::Data::readPendingDataUDP()
 
             socket->readDatagram(buffer.data() + offset, avail);
 
-            //std::size_t consume = 
+            //std::size_t consume =
                 this_->processData(buffer.data(), buffer.size());
 
             buffer.resize(0);
