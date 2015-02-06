@@ -22,7 +22,11 @@ include(pkgconfig)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-set(Boost_USE_MULTITHREADED OFF)
+if (APPLE)
+    set(Boost_USE_MULTITHREADED ON)
+else()
+    set(Boost_USE_MULTITHREADED OFF)
+endif()
 find_package(Boost 1.45.0 REQUIRED COMPONENTS thread system)
 
 if(NOT Boost_FOUND)
