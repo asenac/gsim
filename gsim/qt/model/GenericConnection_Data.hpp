@@ -38,15 +38,12 @@ class GenericConnection::Data : public QObject
 {
     Q_OBJECT
 public:
-
-    Data(GenericConnection * parent) : 
-        QObject(parent), this_(parent)
+    Data(GenericConnection* parent) : QObject(parent), this_(parent)
     {
         assert(parent);
     }
 
-    ~Data() 
-    {}
+    ~Data() {}
 
     bool applyConfig(ConnectionConfig_ptr cfg);
 
@@ -74,4 +71,3 @@ protected:
 } // namespace gsim
 
 #endif /* GSIM_QT_GENERICCONNECTION_DATA_HPP */
-

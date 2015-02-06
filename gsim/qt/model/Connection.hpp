@@ -27,13 +27,13 @@
 #include <gsim/core/holder.hpp>
 #include <gsim/core/event.hpp>
 
-namespace gsim 
+namespace gsim
 {
-namespace qt 
+namespace qt
 {
 
 /**
- * @brief Estados en los que se puede encontrar una conexión. 
+ * @brief Estados en los que se puede encontrar una conexión.
  */
 enum ConnectionStatus
 {
@@ -46,11 +46,8 @@ enum ConnectionStatus
 /**
  * @brief Abstracción para la configuración de una conexión.
  */
-struct ConnectionConfig 
+struct ConnectionConfig
 {
-    /**
-     * @brief Necesario para la vtable para hacer dynamic_cast.
-     */
     virtual ~ConnectionConfig();
 };
 
@@ -71,16 +68,13 @@ struct TCPConnectionConfig : public ConnectionConfig
     bool isServer;
     bool reconnect;
 
-    TCPConnectionConfig() 
-    {}
+    TCPConnectionConfig() {}
 
-    TCPConnectionConfig(const char * host_,
-            unsigned short port_,
-            bool isServer_,
-            bool reconnect_) :
-        host(host_), port(port_), 
-        isServer(isServer_), reconnect(reconnect_)
-    {}
+    TCPConnectionConfig(const char* host_, unsigned short port_, bool isServer_,
+                        bool reconnect_)
+        : host(host_), port(port_), isServer(isServer_), reconnect(reconnect_)
+    {
+    }
 };
 
 /**
@@ -93,16 +87,16 @@ struct UDPConnectionConfig : public ConnectionConfig
     std::string remoteHost;
     unsigned short remotePort;
 
-    UDPConnectionConfig() 
-    {}
+    UDPConnectionConfig() {}
 
-    UDPConnectionConfig(const char * localHost_,
-            unsigned short localPort_,
-            const char * remoteHost_,
-            unsigned short remotePort_) :
-        localHost(localHost_), localPort(localPort_),
-        remoteHost(remoteHost_), remotePort(remotePort_)
-    {}
+    UDPConnectionConfig(const char* localHost_, unsigned short localPort_,
+                        const char* remoteHost_, unsigned short remotePort_)
+        : localHost(localHost_),
+          localPort(localPort_),
+          remoteHost(remoteHost_),
+          remotePort(remotePort_)
+    {
+    }
 };
 
 struct UDPMulticastConnectionConfig : public ConnectionConfig
@@ -148,9 +142,9 @@ public:
 
     /**
      * @brief El descriptor de la conexión indica los mensajes
-     *        que se envían y reciben por la misma. 
+     *        que se envían y reciben por la misma.
      *
-     * @return El descriptor de la conexion. 
+     * @return El descriptor de la conexion.
      */
     ConnectionDescriptor_ptr descriptor() const;
 
@@ -165,7 +159,7 @@ public slots:
     void setType(const QString&);
 
     /**
-     * @brief Envía el estado asociado a un mensaje utilizando 
+     * @brief Envía el estado asociado a un mensaje utilizando
      *        el método doSendMessage. Para poder enviar un estado
      *        la conexión tiene que tener un método registrado
      *        para el tipo del estado.
@@ -181,7 +175,7 @@ public slots:
     void setConfig(ConnectionConfig_ptr);
 
     /**
-     * @brief Establece la configuración y asume la propiedad del 
+     * @brief Establece la configuración y asume la propiedad del
      *        objeto configuración.
      *
      * @param cfg
@@ -211,9 +205,8 @@ protected:
     /**
      * @brief Super-clase para enviar el contenido de un holder.
      */
-    struct Functor 
+    struct Functor
     {
-        
         /**
          * @brief Intenta realizar el envío del holder.
          *
@@ -234,17 +227,14 @@ protected:
     template< typename Value >
     struct FunctorImpl : public Functor
     {
-        typedef boost::function< bool (const Value&) > method_t;
+        typedef boost::function<bool(const Value&)> method_t;
         method_t m_method;
 
-        FunctorImpl(method_t m) :
-            m_method(m)
-        {
-        }
+        FunctorImpl(method_t m) : m_method(m) {}
 
         bool operator()(core::holder h)
         {
-            const Value& v = h.to_value< Value >();
+            const Value& v = h.to_value<Value>();
             return m_method(v);
         }
     };
@@ -273,13 +263,12 @@ protected:
      * @param m El puntero al método.
      * @param this_ La instancia con la que se invoca al método
      */
-    template< typename Value, class This, typename Method>
-    void registerMethod(Method m, This * this_)
+    template <typename Value, class This, typename Method>
+    void registerMethod(Method m, This* this_)
     {
-        Functor_ptr f(new FunctorImpl< Value >(
-                    boost::bind(m, this_, _1)));
+        Functor_ptr f(new FunctorImpl<Value>(boost::bind(m, this_, _1)));
 
-        doRegisterMethod(core::descriptor< Value >::instance(), f);
+        doRegisterMethod(core::descriptor<Value>::instance(), f);
     }
 
     /**
@@ -307,14 +296,14 @@ protected:
     /**
      * @brief Implementa este método para configurar la conexión.
      *
-     * @param ConnectionConfig_ptr cfg Una instancia de un sub-tipo de 
+     * @param ConnectionConfig_ptr cfg Una instancia de un sub-tipo de
      *        ConnectionConfig.
      *
      * @return Devuelve si la configuración ha podido ser aplicada.
      */
     virtual bool applyConfig(ConnectionConfig_ptr cfg) = 0;
 
-    
+
     /**
      * @brief Método que será invocado desde el slot sendMessage.
      *
@@ -361,17 +350,16 @@ protected:
 template< typename T >
 void Connection::notifyMessageReceived(const char * messageName, const T& data)
 {
-	using namespace gsim::core;
+    using namespace gsim::core;
 
-	holder srcHolder (create_holder< T >(const_cast< T& >(data)));
-	holder dstHolder (srcHolder.clone());
-	message_ptr msg(new message(messageName, dstHolder));
-		
-	notifyMessageReceived(msg);
+    holder srcHolder(create_holder<T>(const_cast<T&>(data)));
+    holder dstHolder(srcHolder.clone());
+    message_ptr msg(new message(messageName, dstHolder));
+
+    notifyMessageReceived(msg);
 }
 
 } // namespace qt
 } // namespace gsim
 
 #endif /* GSIM_QT_CONNECTION_HPP */
-

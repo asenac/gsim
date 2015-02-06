@@ -40,14 +40,12 @@ Controller::Controller(QObject * parent) :
 {
     ::gsim::qt::initialize();
 
-    connect(this,
-            SIGNAL(messageReceived(Connection_ptr, Message_ptr)),
-            Engine::instance()->inputMessageProcessorManager(), 
+    connect(this, SIGNAL(messageReceived(Connection_ptr, Message_ptr)),
+            Engine::instance()->inputMessageProcessorManager(),
             SLOT(processMessage(Connection_ptr, Message_ptr)));
 
-    connect(this,
-            SIGNAL(messageSent(Connection_ptr, Message_ptr)),
-            Engine::instance()->outputMessageProcessorManager(), 
+    connect(this, SIGNAL(messageSent(Connection_ptr, Message_ptr)),
+            Engine::instance()->outputMessageProcessorManager(),
             SLOT(processMessage(Connection_ptr, Message_ptr)));
 }
 
@@ -57,9 +55,8 @@ Controller::~Controller()
     m_data->thread.wait();
 
     // Deja al shared_ptr hacer su trabajo
-    for (Data::connections_t::iterator it =
-            m_data->connections.begin(); 
-            it != m_data->connections.end(); ++it) 
+    for (Data::connections_t::iterator it = m_data->connections.begin();
+         it != m_data->connections.end(); ++it)
     {
         it->second->setParent(NULL);
     }
@@ -85,22 +82,24 @@ void Controller::createConnection(ConnectionConfig_ptr cfg)
 
 void Controller::addConnection(Connection_ptr con)
 {
-    if (m_data->connectionsByName.find(con->name()) != 
-            m_data->connectionsByName.end())
+    if (m_data->connectionsByName.find(con->name()) !=
+        m_data->connectionsByName.end())
+    {
         throw "There is already a connection with the same name.";
+    }
 
     con->setParent(this);
 
     m_data->connections[con.get()] = con;
     m_data->connectionsByName[con->name()] = con;
 
-    connect(con.get(), SIGNAL(messageSent(Message_ptr)),
-            this, SLOT(messageSent(Message_ptr)));
-    connect(con.get(), SIGNAL(messageReceived(Message_ptr)),
-            this, SLOT(messageReceived(Message_ptr)));
+    connect(con.get(), SIGNAL(messageSent(Message_ptr)), this,
+            SLOT(messageSent(Message_ptr)));
+    connect(con.get(), SIGNAL(messageReceived(Message_ptr)), this,
+            SLOT(messageReceived(Message_ptr)));
 
-    connect(con.get(), SIGNAL(error(const QString&)),
-            this, SLOT(notifyError(const QString&)));
+    connect(con.get(), SIGNAL(error(const QString&)), this,
+            SLOT(notifyError(const QString&)));
 
     emit connectionCreated(con);
 }
@@ -110,13 +109,13 @@ void Controller::removeConnection(Connection_ptr con)
     m_data->connectionsByName.erase(con->name());
     m_data->connections.erase(con.get());
 
-    disconnect(con.get(), SIGNAL(messageSent(Message_ptr)),
-            this, SLOT(messageSent(Message_ptr)));
-    disconnect(con.get(), SIGNAL(messageReceived(Message_ptr)),
-            this, SLOT(messageReceived(Message_ptr)));
+    disconnect(con.get(), SIGNAL(messageSent(Message_ptr)), this,
+               SLOT(messageSent(Message_ptr)));
+    disconnect(con.get(), SIGNAL(messageReceived(Message_ptr)), this,
+               SLOT(messageReceived(Message_ptr)));
 
-    disconnect(con.get(), SIGNAL(error(const QString&)),
-            this, SLOT(notifyError(const QString&)));
+    disconnect(con.get(), SIGNAL(error(const QString&)), this,
+               SLOT(notifyError(const QString&)));
 
     emit connectionDeleted(con);
 }
@@ -158,29 +157,25 @@ Connection_ptr Controller::doCreateConnection(ConnectionConfig_ptr)
 
 Connection_ptr Controller::getConnection(const QString& name) const
 {
-    Data::connections_by_name_t::const_iterator it = 
+    Data::connections_by_name_t::const_iterator it =
         m_data->connectionsByName.find(name);
 
-    if (it != m_data->connectionsByName.end())
-        return it->second;
+    if (it != m_data->connectionsByName.end()) return it->second;
 
     return Connection_ptr();
 }
 
 void Controller::notifyError(const QString& err)
 {
-    QObject * obj = sender();
-    Connection * con = NULL;
+    QObject* obj = sender();
+    Connection* con = NULL;
 
-    if (obj && (con = dynamic_cast< Connection * >(obj)))
+    if (obj && (con = dynamic_cast<Connection*>(obj)))
     {
-        emit error(QString("Connection %1 - %2")
-                .arg(con->name())
-                .arg(err));
+        emit error(QString("Connection %1 - %2").arg(con->name()).arg(err));
     }
     else
     {
         emit error(err);
     }
 }
-
