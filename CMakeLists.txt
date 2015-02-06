@@ -23,6 +23,7 @@ include(pkgconfig)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 if (APPLE)
+    set(CMAKE_MACOSX_RPATH ON)
     set(Boost_USE_MULTITHREADED ON)
 else()
     set(Boost_USE_MULTITHREADED OFF)
