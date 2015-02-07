@@ -33,8 +33,8 @@ public:
 
     GenericConnection(QObject * parent);
     GenericConnection(
-            ConnectionDescriptor_ptr descriptor = ConnectionDescriptor_ptr(),
-            QObject * parent = 0);
+        ConnectionDescriptor_ptr descriptor = ConnectionDescriptor_ptr(),
+        QObject* parent = 0);
     virtual ~GenericConnection();
 
     /**
@@ -71,4 +71,3 @@ protected:
 } // namespace gsim
 
 #endif /* GSIM_QT_GENERICCONNECTION_HPP */
-

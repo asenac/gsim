@@ -73,7 +73,23 @@ void GenericConnection::send(const char * data, std::size_t size)
 {
     if (!m_data->connection.isNull())
     {
-        m_data->connection->write(data, size);
+        UDPConnectionConfig* udpCfg =
+            dynamic_cast<UDPConnectionConfig*>(m_data->cfg.get());
+
+        if (udpCfg)
+        {
+            // XXX cannot use write() method for UDP sockets due to
+            // the bug in connectToHost that resets the local port
+            // specified by bind()
+            QUdpSocket* socket =
+                static_cast<QUdpSocket*>(m_data->connection.data());
+            const QHostAddress remoteHost(udpCfg->remoteHost.c_str());
+            socket->writeDatagram(data, size, remoteHost, udpCfg->remotePort);
+        }
+        else
+        {
+            m_data->connection->write(data, size);
+        }
     }
 }
 
@@ -82,21 +98,21 @@ bool GenericConnection::applyConfig(ConnectionConfig_ptr cfg)
     return m_data->applyConfig(cfg);
 }
 
-bool GenericConnection::Data::applyConfig(ConnectionConfig_ptr cfg)
+bool GenericConnection::Data::applyConfig(ConnectionConfig_ptr cfg_)
 {
     bool res = false;
 
-    if (!cfg)
+    if (!cfg_)
     {
         connection.reset();
-        this_->setStatus( ::gsim::qt::kStatusDisconnected);
+        this_->setStatus(kStatusDisconnected);
 
         res = true;
     }
     else // if (connection.isNull())
     {
-        ::gsim::qt::UDPConnectionConfig * udpCfg =
-            dynamic_cast< ::gsim::qt::UDPConnectionConfig * >(cfg.get());
+        UDPConnectionConfig * udpCfg =
+            dynamic_cast< UDPConnectionConfig * >(cfg_.get());
 
         if (udpCfg)
         {
@@ -104,26 +120,38 @@ bool GenericConnection::Data::applyConfig(ConnectionConfig_ptr cfg)
             connection.reset(socket);
 
             const QHostAddress localHost(udpCfg->localHost.c_str());
-            const QHostAddress remoteHost(udpCfg->remoteHost.c_str());
+            if (!socket->bind(localHost, udpCfg->localPort))
+            {
+                this_->setStatus(kStatusDisconnected);
+                connection.reset();
 
-            socket->bind(localHost, udpCfg->localPort);
-            connection->connectToHost(remoteHost, udpCfg->remotePort);
+                emit this_->error(QString("Cannot use local UDP endpoint %1:%2")
+                                      .arg(localHost.toString())
+                                      .arg(udpCfg->localPort));
+            }
+            else
+            {
+                // XXX connectToHost resets local portd due to a bug
+                // https://bugreports.qt.io/browse/QTBUG-26538
+                // const QHostAddress remoteHost(udpCfg->remoteHost.c_str());
+                // socket->connectToHost(remoteHost, udpCfg->remotePort);
 
-            connect(connection.data(),
-                    SIGNAL(stateChanged(QAbstractSocket::SocketState)), this,
-                    SLOT(stateChanged(QAbstractSocket::SocketState)));
+                connect(socket,
+                        SIGNAL(stateChanged(QAbstractSocket::SocketState)),
+                        this, SLOT(stateChanged(QAbstractSocket::SocketState)));
 
-            connect(connection.data(), SIGNAL(readyRead()), this,
-                    SLOT(readPendingDataUDP()));
+                connect(socket, SIGNAL(readyRead()), this,
+                        SLOT(readPendingDataUDP()));
 
-            this_->setStatus(translate(connection->state()));
+                this_->setStatus(kStatusConnected);
 
-            res = true;
+                res = true;
+            }
         }
         else
         {
-            ::gsim::qt::TCPConnectionConfig * tcpCfg =
-                dynamic_cast< ::gsim::qt::TCPConnectionConfig * >(cfg.get());
+            ::gsim::qt::TCPConnectionConfig* tcpCfg =
+                dynamic_cast< ::gsim::qt::TCPConnectionConfig*>(cfg_.get());
 
             if (tcpCfg)
             {
@@ -132,16 +160,19 @@ bool GenericConnection::Data::applyConfig(ConnectionConfig_ptr cfg)
         }
     }
 
+    if (res)
+        cfg = cfg_;
+    else
+        cfg.reset();
+
     return res;
 }
 
 void GenericConnection::Data::readPendingDataUDP()
 {
-    std::cout << __FUNCTION__ << std::endl;
     if (!connection.isNull())
     {
-        QUdpSocket * socket =
-            static_cast< QUdpSocket * >(connection.data());
+        QUdpSocket* socket = static_cast<QUdpSocket*>(connection.data());
 
         while (socket->hasPendingDatagrams())
         {

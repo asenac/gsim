@@ -63,6 +63,7 @@ protected:
     GenericConnection * this_;
 
     socket_ptr connection;
+    ConnectionConfig_ptr cfg;
 
     QByteArray buffer;
 };

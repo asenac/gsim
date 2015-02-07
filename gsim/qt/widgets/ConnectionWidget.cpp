@@ -171,7 +171,7 @@ TCPConnectionWidget::TCPConnectionWidget(QWidget * parent) :
     layout->addWidget(form);
 
     // Valores por defecto
-    m_data->host->setText("127.0.1.1");
+    m_data->host->setText("127.0.0.1");
     m_data->port->setValue(5678);
     m_data->reconnect->setChecked(true);
 
@@ -313,9 +313,9 @@ UDPConnectionWidget::UDPConnectionWidget(QWidget * parent) :
     layout->addWidget(form);
 
     // Valores por defecto
-    m_data->localHost->setText("127.0.1.1");
+    m_data->localHost->setText("127.0.0.1");
     m_data->localPort->setValue(5679);
-    m_data->remoteHost->setText("127.0.1.1");
+    m_data->remoteHost->setText("127.0.0.1");
     m_data->remotePort->setValue(5678);
 
     // Button
