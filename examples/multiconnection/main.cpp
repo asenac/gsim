@@ -16,7 +16,7 @@ class SimpleConnection : public gsim::qt::GenericConnection
 {
 public:
 
-    SimpleConnection() 
+    SimpleConnection()
     {
         // Establece el tipo de la conexión
         setType("UDP");
@@ -31,7 +31,7 @@ public:
         registerMethod< simple::HelloMsg >(&SimpleConnection::sendHelloMsg, this);
     }
 
-    // Método reimplementado para procesar los datos recibidos por la 
+    // Método reimplementado para procesar los datos recibidos por la
     // conexión
     std::size_t processData(const char * data, std::size_t size)
     {
@@ -41,7 +41,7 @@ public:
 
         // Notificamos la recepción del mensaje
         notifyMessageReceived("HELLO_MSG", msg);
-        
+
         // El mensaje entero se puede consumir
         return size;
     }
@@ -62,9 +62,9 @@ typedef boost::shared_ptr< SimpleConnection >
 int main(int argc, char ** argv)
 {
     // Inicialización
-    gsim::qt::Application app(argc, argv);	
+    gsim::qt::Application app(argc, argv);
 
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 2; i++)
     {
         // Creamos la conexión
         SimpleConnection_ptr connection(new SimpleConnection());
