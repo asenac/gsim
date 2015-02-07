@@ -20,54 +20,39 @@
 #include <gsim/qt/widgets/FormWidget.hpp>
 #include <gsim/qt/widgets/Status.hpp>
 #include <gsim/qt/widgets/StartStopButton.hpp>
+#include <QHostAddress>
 #include <limits>
-#include <iostream>
 
 using namespace gsim::qt;
 
-ConnectionWidget::ConnectionWidget(QWidget * parent) :
-    QWidget(parent)
-{
-}
+ConnectionWidget::ConnectionWidget(QWidget* parent) : QWidget(parent) {}
 
-ConnectionWidget::~ConnectionWidget()
-{
-}
+ConnectionWidget::~ConnectionWidget() {}
 
-void ConnectionWidget::save(QVariant& settings)
-{
-}
+void ConnectionWidget::save(QVariant& settings) {}
 
-void ConnectionWidget::load(const QVariant& settings)
-{
-}
+void ConnectionWidget::load(const QVariant& settings) {}
 
-void ConnectionWidget::statusChanged(ConnectionStatus)
-{
-}
+void ConnectionWidget::statusChanged(ConnectionStatus) {}
 
-void ConnectionWidget::configChanged(ConnectionConfig_ptr)
-{
-}
+void ConnectionWidget::configChanged(ConnectionConfig_ptr) {}
 
 //
-// ConnectionWidgetFactory 
+// ConnectionWidgetFactory
 //
 
 class ConnectionWidgetFactory::Data
 {
 public:
-
-    typedef std::map< QString, factory_t > factories_t;
+    typedef std::map<QString, factory_t> factories_t;
 
     factories_t factories;
 };
 
-ConnectionWidgetFactory::ConnectionWidgetFactory() :
-    m_data(new Data)
+ConnectionWidgetFactory::ConnectionWidgetFactory() : m_data(new Data)
 {
     registerFactory("TCP", &TCPConnectionWidget::create);
-    registerFactory("TCP/IP", &TCPConnectionWidget::create); // alias
+    registerFactory("TCP/IP", &TCPConnectionWidget::create);  // alias
     registerFactory("UDP", &UDPConnectionWidget::create);
     registerFactory("UDP/MCast", &UDPMulticastConnectionWidget::create);
     registerFactory("UDP/Multicast", &UDPMulticastConnectionWidget::create);
@@ -76,27 +61,26 @@ ConnectionWidgetFactory::ConnectionWidgetFactory() :
     registerFactory("MultiCast", &UDPMulticastConnectionWidget::create);
     registerFactory("multicast", &UDPMulticastConnectionWidget::create);
 }
-    
+
 ConnectionWidgetFactory::~ConnectionWidgetFactory()
 {
     delete m_data;
 }
 
-ConnectionWidgetFactory * ConnectionWidgetFactory::instance()
+ConnectionWidgetFactory* ConnectionWidgetFactory::instance()
 {
-    static std::auto_ptr< ConnectionWidgetFactory > _instance(
-            new ConnectionWidgetFactory);
-    return _instance.get();
+    static ConnectionWidgetFactory _instance;
+    return &_instance;
 }
 
-void ConnectionWidgetFactory::registerFactory(const QString& type, 
-        factory_t factory)
+void ConnectionWidgetFactory::registerFactory(const QString& type,
+                                              factory_t factory)
 {
     m_data->factories[type] = factory;
 }
 
-void ConnectionWidgetFactory::registerAlias(const QString& type, 
-        const QString& orig)
+void ConnectionWidgetFactory::registerAlias(const QString& type,
+                                            const QString& orig)
 {
     Data::factories_t::const_iterator it = m_data->factories.find(orig);
 
@@ -127,7 +111,6 @@ ConnectionWidget * ConnectionWidgetFactory::createWidget(
 class TCPConnectionWidget::Data
 {
 public:
-
     FormWidget * form;
     QLineEdit * host;
     QSpinBox * port;
@@ -143,11 +126,11 @@ ConnectionWidget * TCPConnectionWidget::create(QWidget * parent)
     return new TCPConnectionWidget(parent);
 }
 
-TCPConnectionWidget::TCPConnectionWidget(QWidget * parent) :
-    ConnectionWidget(parent), m_data(new Data)
+TCPConnectionWidget::TCPConnectionWidget(QWidget* parent)
+    : ConnectionWidget(parent), m_data(new Data)
 {
-    QVBoxLayout * layout = new QVBoxLayout();
-    FormWidget * form = new FormWidget();
+    QVBoxLayout* layout = new QVBoxLayout();
+    FormWidget* form = new FormWidget();
     m_data->form = form;
     form->setMaximumWidth(270);
 
@@ -164,25 +147,25 @@ TCPConnectionWidget::TCPConnectionWidget(QWidget * parent) :
     m_data->mode->addItem("Client");
     m_data->mode->addItem("Server");
 
-    m_data->port->setRange(std::numeric_limits< unsigned short >::min(),
-            std::numeric_limits< unsigned short >::max());
+    m_data->port->setRange(std::numeric_limits<unsigned short>::min(),
+                           std::numeric_limits<unsigned short>::max());
 
     layout->setSizeConstraint(QLayout::SetFixedSize);
     layout->addWidget(form);
 
     // Valores por defecto
-    m_data->host->setText("127.0.0.1");
+    m_data->host->setText("127.0.1.1");
     m_data->port->setValue(5678);
     m_data->reconnect->setChecked(true);
 
     // Button
     m_data->buttonBox = new QDialogButtonBox(this);
     m_data->button = new StartStopButton();
-    m_data->buttonBox->addButton(m_data->button, 
+    m_data->buttonBox->addButton(m_data->button,
             QDialogButtonBox::AcceptRole);
     layout->addWidget(m_data->buttonBox);
 
-    connect(m_data->button, SIGNAL(toggled(bool)), 
+    connect(m_data->button, SIGNAL(toggled(bool)),
             this, SLOT(startStop(bool)));
 
     setLayout(layout);
@@ -236,10 +219,9 @@ void TCPConnectionWidget::load(const QVariant& settings)
     m_data->host->setText(map["host"].toString());
     m_data->port->setValue(map["port"].toInt());
 
-    const QString mode (map["mode"].toString());
+    const QString mode(map["mode"].toString());
     int idx = m_data->mode->findText(mode);
-    if (idx > -1)
-        m_data->mode->setCurrentIndex(idx);
+    if (idx > -1) m_data->mode->setCurrentIndex(idx);
 
     m_data->reconnect->setChecked(map["reconnect"].toBool());
 }
@@ -255,14 +237,13 @@ void TCPConnectionWidget::statusChanged(ConnectionStatus status)
 
 void TCPConnectionWidget::configChanged(ConnectionConfig_ptr cfg)
 {
-    TCPConnectionConfig * tcpCfg = 
-        dynamic_cast< TCPConnectionConfig * >(cfg.get());
+    TCPConnectionConfig* tcpCfg = dynamic_cast<TCPConnectionConfig*>(cfg.get());
 
     if (tcpCfg)
     {
         m_data->host->setText(tcpCfg->host.c_str());
         m_data->port->setValue(tcpCfg->port);
-        m_data->mode->setCurrentIndex(((tcpCfg->isServer)? 1: 0));
+        m_data->mode->setCurrentIndex(((tcpCfg->isServer) ? 1 : 0));
         m_data->reconnect->setChecked(tcpCfg->reconnect);
     }
 }
@@ -274,38 +255,38 @@ void TCPConnectionWidget::configChanged(ConnectionConfig_ptr cfg)
 class UDPConnectionWidget::Data
 {
 public:
-    FormWidget * form;
-    QLineEdit * localHost;
-    QSpinBox * localPort;
-    QLineEdit * remoteHost;
-    QSpinBox * remotePort;
+    FormWidget* form;
+    QLineEdit* localHost;
+    QSpinBox* localPort;
+    QLineEdit* remoteHost;
+    QSpinBox* remotePort;
 
-    QDialogButtonBox * buttonBox;
-    StartStopButton * button;
+    QDialogButtonBox* buttonBox;
+    StartStopButton* button;
 };
 
-UDPConnectionWidget::UDPConnectionWidget(QWidget * parent) :
-    ConnectionWidget(parent), m_data(new Data)
+UDPConnectionWidget::UDPConnectionWidget(QWidget* parent)
+    : ConnectionWidget(parent), m_data(new Data)
 {
-    QVBoxLayout * layout = new QVBoxLayout();
-    FormWidget * form = new FormWidget();
+    QVBoxLayout* layout = new QVBoxLayout();
+    FormWidget* form = new FormWidget();
     m_data->form = form;
     form->setMaximumWidth(270);
 
     m_data->localHost = new QLineEdit();
     m_data->localPort = new QSpinBox();
-    m_data->remoteHost = new QLineEdit();
-    m_data->remotePort = new QSpinBox();
+    m_data->localHost = new QLineEdit();
+    m_data->localPort = new QSpinBox();
 
     form->addField("Local host", m_data->localHost);
     form->addField("Local port", m_data->localPort);
-    form->addField("Remote host", m_data->remoteHost);
-    form->addField("Remote port", m_data->remotePort);
+    form->addField("Remote host", m_data->localHost);
+    form->addField("Remote port", m_data->localPort);
 
     m_data->localPort->setRange(
             std::numeric_limits< unsigned short >::min(),
             std::numeric_limits< unsigned short >::max());
-    m_data->remotePort->setRange(
+    m_data->localPort->setRange(
             std::numeric_limits< unsigned short >::min(),
             std::numeric_limits< unsigned short >::max());
 
@@ -321,12 +302,10 @@ UDPConnectionWidget::UDPConnectionWidget(QWidget * parent) :
     // Button
     m_data->buttonBox = new QDialogButtonBox(this);
     m_data->button = new StartStopButton();
-    m_data->buttonBox->addButton(m_data->button, 
-            QDialogButtonBox::AcceptRole);
+    m_data->buttonBox->addButton(m_data->button, QDialogButtonBox::AcceptRole);
     layout->addWidget(m_data->buttonBox);
 
-    connect(m_data->button, SIGNAL(toggled(bool)), 
-            this, SLOT(startStop(bool)));
+    connect(m_data->button, SIGNAL(toggled(bool)), this, SLOT(startStop(bool)));
 
     setLayout(layout);
 
@@ -339,12 +318,12 @@ UDPConnectionWidget::~UDPConnectionWidget()
 
 ConnectionConfig_ptr UDPConnectionWidget::config() const
 {
-    UDPConnectionConfig * cfg = new UDPConnectionConfig;
+    UDPConnectionConfig* cfg = new UDPConnectionConfig;
 
     cfg->localHost = m_data->localHost->text().toStdString();
-    cfg->localPort = (unsigned short) m_data->localPort->value();
+    cfg->localPort = (unsigned short)m_data->localPort->value();
     cfg->remoteHost = m_data->remoteHost->text().toStdString();
-    cfg->remotePort = (unsigned short) m_data->remotePort->value();
+    cfg->remotePort = (unsigned short)m_data->remotePort->value();
 
     return ConnectionConfig_ptr(cfg);
 }
@@ -399,7 +378,7 @@ void UDPConnectionWidget::statusChanged(ConnectionStatus status)
 
 void UDPConnectionWidget::configChanged(ConnectionConfig_ptr cfg)
 {
-    UDPConnectionConfig * udpCfg = 
+    UDPConnectionConfig * udpCfg =
         dynamic_cast< UDPConnectionConfig * >(cfg.get());
 
     if (udpCfg)
@@ -427,12 +406,11 @@ public:
     StartStopButton * button;
 };
 
-UDPMulticastConnectionWidget::UDPMulticastConnectionWidget(
-        QWidget * parent) :
-    ConnectionWidget(parent), m_data(new Data)
+UDPMulticastConnectionWidget::UDPMulticastConnectionWidget(QWidget* parent)
+    : ConnectionWidget(parent), m_data(new Data)
 {
-    QVBoxLayout * layout = new QVBoxLayout();
-    FormWidget * form = new FormWidget();
+    QVBoxLayout* layout = new QVBoxLayout();
+    FormWidget* form = new FormWidget();
     m_data->form = form;
 
     m_data->localHost = new QLineEdit();
@@ -443,8 +421,8 @@ UDPMulticastConnectionWidget::UDPMulticastConnectionWidget(
     form->addField("Multicast address", m_data->multicastAddress);
     form->addField("Port", m_data->port);
 
-    m_data->port->setRange(std::numeric_limits< unsigned short >::min(),
-            std::numeric_limits< unsigned short >::max());
+    m_data->port->setRange(std::numeric_limits<unsigned short>::min(),
+                           std::numeric_limits<unsigned short>::max());
 
     layout->setSizeConstraint(QLayout::SetFixedSize);
     layout->addWidget(form);
@@ -457,12 +435,10 @@ UDPMulticastConnectionWidget::UDPMulticastConnectionWidget(
     // Button
     m_data->buttonBox = new QDialogButtonBox(this);
     m_data->button = new StartStopButton();
-    m_data->buttonBox->addButton(m_data->button, 
-            QDialogButtonBox::AcceptRole);
+    m_data->buttonBox->addButton(m_data->button, QDialogButtonBox::AcceptRole);
     layout->addWidget(m_data->buttonBox);
 
-    connect(m_data->button, SIGNAL(toggled(bool)), 
-            this, SLOT(startStop(bool)));
+    connect(m_data->button, SIGNAL(toggled(bool)), this, SLOT(startStop(bool)));
 
     setLayout(layout);
 }
@@ -477,7 +453,7 @@ ConnectionConfig_ptr UDPMulticastConnectionWidget::config() const
     UDPMulticastConnectionConfig * cfg = new UDPMulticastConnectionConfig;
 
     cfg->localHost = m_data->localHost->text().toStdString();
-    cfg->multicastAddress = 
+    cfg->multicastAddress =
         m_data->multicastAddress->text().toStdString();
     cfg->port = (unsigned short) m_data->port->value();
 
@@ -518,8 +494,7 @@ void UDPMulticastConnectionWidget::load(const QVariant& settings)
 
     m_data->localHost->setText(map["local host"].toString());
     m_data->port->setValue(map["port"].toInt());
-    m_data->multicastAddress->setText(
-            map["multicast address"].toString());
+    m_data->multicastAddress->setText(map["multicast address"].toString());
 }
 
 void UDPMulticastConnectionWidget::statusChanged(ConnectionStatus status)
@@ -536,36 +511,33 @@ void UDPMulticastConnectionWidget::configChanged(ConnectionConfig_ptr)
     // TODO
 }
 
-// 
+//
 // ConnectionStatus
 //
 
 class ConnectionStatusWidget::Data
 {
 public:
-    Data(Connection_ptr con) :
-        connection(con)
-    {
-    }
+    Data(Connection_ptr con) : connection(con) {}
 
     Connection_ptr connection;
-    Status * statusWidget;
+    Status* statusWidget;
 };
 
-ConnectionStatusWidget::ConnectionStatusWidget(Connection_ptr con, 
-        QWidget * parent) :
-    QWidget(parent), m_data(new Data(con))
+ConnectionStatusWidget::ConnectionStatusWidget(Connection_ptr con,
+                                               QWidget* parent)
+    : QWidget(parent), m_data(new Data(con))
 {
-    QHBoxLayout * layout = new QHBoxLayout();
+    QHBoxLayout* layout = new QHBoxLayout();
     m_data->statusWidget = new Status(this);
     layout->addWidget(m_data->statusWidget);
     setLayout(layout);
 
     // Actualizaciones de estado
-    connect(con.get(), SIGNAL(statusChanged(ConnectionStatus)),
-            this, SLOT(update()));
-    connect(con.get(), SIGNAL(nameChanged(const QString&)),
-            this, SLOT(update()));
+    connect(con.get(), SIGNAL(statusChanged(ConnectionStatus)), this,
+            SLOT(update()));
+    connect(con.get(), SIGNAL(nameChanged(const QString&)), this,
+            SLOT(update()));
 
     // Inicializa el estado
     update();
@@ -580,7 +552,7 @@ void ConnectionStatusWidget::update()
 {
     QString statusStr;
 
-    switch(m_data->connection->status())
+    switch (m_data->connection->status())
     {
         default:
         case kStatusDisconnected:
@@ -601,7 +573,6 @@ void ConnectionStatusWidget::update()
 
     // Actualiza el toolTip
     setToolTip(QString("Connection: %1, Status: %2")
-            .arg(m_data->connection->name())
-            .arg(statusStr));
+                   .arg(m_data->connection->name())
+                   .arg(statusStr));
 }
-
