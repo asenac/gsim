@@ -275,20 +275,18 @@ UDPConnectionWidget::UDPConnectionWidget(QWidget* parent)
 
     m_data->localHost = new QLineEdit();
     m_data->localPort = new QSpinBox();
-    m_data->localHost = new QLineEdit();
-    m_data->localPort = new QSpinBox();
+    m_data->remoteHost = new QLineEdit();
+    m_data->remotePort = new QSpinBox();
 
     form->addField("Local host", m_data->localHost);
     form->addField("Local port", m_data->localPort);
-    form->addField("Remote host", m_data->localHost);
-    form->addField("Remote port", m_data->localPort);
+    form->addField("Remote host", m_data->remoteHost);
+    form->addField("Remote port", m_data->remotePort);
 
-    m_data->localPort->setRange(
-            std::numeric_limits< unsigned short >::min(),
-            std::numeric_limits< unsigned short >::max());
-    m_data->localPort->setRange(
-            std::numeric_limits< unsigned short >::min(),
-            std::numeric_limits< unsigned short >::max());
+    m_data->localPort->setRange(std::numeric_limits<unsigned short>::min(),
+                                std::numeric_limits<unsigned short>::max());
+    m_data->remotePort->setRange(std::numeric_limits<unsigned short>::min(),
+                                std::numeric_limits<unsigned short>::max());
 
     layout->setSizeConstraint(QLayout::SetFixedSize);
     layout->addWidget(form);
