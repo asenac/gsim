@@ -21,24 +21,24 @@
 
 using namespace gsim::qt;
 
-StartStopButton::StartStopButton(QWidget * parent) :
-    QPushButton(parent),
-    m_startText("Start"),
-    m_stopText("Stop")
+StartStopButton::StartStopButton(QWidget* parent)
+    : QPushButton(parent), m_startText("Start"), m_stopText("Stop")
 {
     m_startIcon = style()->standardIcon(QStyle::SP_MediaPlay);
     m_stopIcon = style()->standardIcon(QStyle::SP_MediaStop);
 
-    setCheckable(true);
+    m_startIcon = QIcon(m_stopIcon.pixmap(QSize(15, 15)));
+    m_stopIcon = QIcon(m_stopIcon.pixmap(QSize(15, 15)));
 
+    setStyleSheet("QPushButton { padding: 5px;}");
+
+    setCheckable(true);
     setStarted(false);
 
     connect(this, SIGNAL(toggled(bool)), this, SLOT(setStarted(bool)));
 }
 
-StartStopButton::~StartStopButton()
-{
-}
+StartStopButton::~StartStopButton() {}
 
 void StartStopButton::setStarted(bool started)
 {

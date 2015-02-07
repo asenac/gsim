@@ -32,13 +32,8 @@ using namespace gsim::qt;
 class DetailedLogItem::Data
 {
 public:
-
-    Data(DetailedLogController * c,
-            TypeDescriptor_ptr d) : 
-        controller(c),
-        descriptor(d),
-        reflectiveWidget(NULL),
-        drag(NULL)
+    Data(DetailedLogController* c, TypeDescriptor_ptr d)
+        : controller(c), descriptor(d), reflectiveWidget(NULL), drag(NULL)
     {
     }
 
@@ -259,4 +254,3 @@ void DetailedLogController::showDetails(const QModelIndex& idx)
         }
     }
 }
-

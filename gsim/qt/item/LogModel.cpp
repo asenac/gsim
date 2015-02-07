@@ -39,12 +39,12 @@ using namespace gsim::qt;
 class LogModel::Data
 {
 public:
-
-    Data(QObject * this_) : 
-        maxEntries(GSIM_LOG_DEFAULT_MAX_SIZE),
-        editable(false),
-        pendingTimer(this_)
-    {}
+    Data(QObject* this_)
+        : maxEntries(GSIM_LOG_DEFAULT_MAX_SIZE),
+          editable(false),
+          pendingTimer(this_)
+    {
+    }
 
     int maxEntries;
     bool editable;
@@ -52,20 +52,23 @@ public:
     QIcon inputIcon;
     QIcon outputIcon;
 
-    QList< LogEntry > entries;
-    QList< LogEntry > pendingEntries;
-    QList< MetaNode_ptr > nodes;
+    QList<LogEntry> entries;
+    QList<LogEntry> pendingEntries;
+    QList<MetaNode_ptr> nodes;
 
     QTime delayDiff;
 
     QTimer pendingTimer;
 };
 
-LogModel::LogModel(QObject * parent) :
-    QAbstractItemModel(parent), m_data(new Data(this))
+LogModel::LogModel(QObject* parent)
+    : QAbstractItemModel(parent), m_data(new Data(this))
 {
     m_data->inputIcon = qApp->style()->standardIcon(QStyle::SP_ArrowRight);
     m_data->outputIcon = qApp->style()->standardIcon(QStyle::SP_ArrowLeft);
+
+    m_data->inputIcon = QIcon(m_data->inputIcon.pixmap(QSize(15, 15)));
+    m_data->outputIcon = QIcon(m_data->outputIcon.pixmap(QSize(15, 15)));
 
 #if QT_VERSION >= 0x0401700
     m_data->entries.reserve(2 * m_data->maxEntries);
@@ -74,20 +77,17 @@ LogModel::LogModel(QObject * parent) :
     // Timer
     m_data->pendingTimer.setSingleShot(true);
     m_data->pendingTimer.setInterval(GSIM_LOG_TIMER_INTERVAL);
-    connect(&m_data->pendingTimer, SIGNAL(timeout()),
-            this, SLOT(processPendingEntries()));
+    connect(&m_data->pendingTimer, SIGNAL(timeout()), this,
+            SLOT(processPendingEntries()));
 
     setSupportedDragActions(Qt::CopyAction);
 }
 
-LogModel::~LogModel()
-{
-    delete m_data;
-}
+LogModel::~LogModel() { delete m_data; }
 
-QMimeData *	LogModel::mimeData(const QModelIndexList& indexes) const
+QMimeData* LogModel::mimeData(const QModelIndexList& indexes) const
 {
-    if (indexes.size() == 2) // both columns
+    if (indexes.size() == 2)  // both columns
     {
         int pos = indexToPosition(indexes.at(0));
 
@@ -100,7 +100,7 @@ QMimeData *	LogModel::mimeData(const QModelIndexList& indexes) const
             std::ostringstream oss;
             json::write(oss, holder.get_type_descriptor(), holder);
 
-            QMimeData *mimeData = new QMimeData;
+            QMimeData* mimeData = new QMimeData;
             mimeData->setText(oss.str().c_str());
 
             return mimeData;
@@ -112,27 +112,22 @@ QMimeData *	LogModel::mimeData(const QModelIndexList& indexes) const
 
 int LogModel::indexToPosition(const QModelIndex& index) const
 {
-    if (!index.isValid())
-        return -1;
+    if (!index.isValid()) return -1;
 
     QModelIndex parent = index;
 
-    while (parent.parent().isValid())
-        parent = parent.parent();
+    while (parent.parent().isValid()) parent = parent.parent();
 
     return parent.row();
 }
 
-int LogModel::columnCount(const QModelIndex &/*parent*/) const
-{
-    return 2;
-}
+int LogModel::columnCount(const QModelIndex& /*parent*/) const { return 2; }
 
-const LogModel::LogEntry * LogModel::getEntry(const QModelIndex& index) const
+const LogModel::LogEntry* LogModel::getEntry(const QModelIndex& index) const
 {
     QModelIndex idx = index;
 
-    while(idx.parent().isValid()) idx = idx.parent();
+    while (idx.parent().isValid()) idx = idx.parent();
 
     if (idx.isValid() && idx.row() < m_data->entries.size())
     {
@@ -142,59 +137,52 @@ const LogModel::LogEntry * LogModel::getEntry(const QModelIndex& index) const
     return NULL;
 }
 
-namespace 
+namespace
 {
-
-QString getNodeName(MetaNode const * node)
-{
-    if (node->parent && node->parent->descriptor->is_repeated())
+    QString getNodeName(MetaNode const* node)
     {
-        return QString("[%1]").arg(node->index);
+        if (node->parent && node->parent->descriptor->is_repeated())
+        {
+            return QString("[%1]").arg(node->index);
+        }
+        else if (node->parent &&
+                 node->parent->descriptor->get_type() ==
+                     gsim::core::TYPE_STRUCT)
+        {
+            return node->parent->descriptor->get_child_name(node->index);
+        }
+
+        return "Error!";
     }
-    else if (node->parent && node->parent->descriptor->get_type() ==
-            gsim::core::TYPE_STRUCT)
-    {
-        return node->parent->descriptor->get_child_name(node->index);
-    }
 
-    return "Error!";
-}
-
-} // namespace 
-
+}  // namespace
 
 QVariant LogModel::data(const QModelIndex& index, int role) const
 {
-    if (!index.isValid())
-        return QVariant();
+    if (!index.isValid()) return QVariant();
 
     // Background
     if (role == Qt::BackgroundRole)
     {
         QModelIndex parent = index;
-        while(parent.parent().isValid())
+        while (parent.parent().isValid())
         {
             parent = parent.parent();
         }
 
-        // std::cout << parent.row() << std::endl;
         const LogEntry& entry = m_data->entries.at(parent.row());
-
-        // return QVariant();
         return entry.color;
     }
     else if (role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        MetaNode * node = 
-            static_cast< MetaNode * >(index.internalPointer());
+        MetaNode* node = static_cast<MetaNode*>(index.internalPointer());
         node->check_for_initialized();
 
         // First level item
         if (!index.parent().isValid())
         {
             // Value
-            if (index.column())
-                return m_data->entries[index.row()].dateTime;
+            if (index.column()) return m_data->entries[index.row()].dateTime;
 
             return m_data->entries[index.row()].text;
         }
@@ -205,10 +193,9 @@ QVariant LogModel::data(const QModelIndex& index, int role) const
             {
                 int col = index.column() - 1;
 
-                if (col < (int) node->brothers.size() 
-                        && node->brothers[col])
-                    return toQVariant(node->descriptor, 
-                            node->brothers[col]->holder);
+                if (col < (int)node->brothers.size() && node->brothers[col])
+                    return toQVariant(node->descriptor,
+                                      node->brothers[col]->holder);
 
                 return QVariant();
             }
@@ -229,16 +216,14 @@ QVariant LogModel::data(const QModelIndex& index, int role) const
         }
         else
         {
-            MetaNode * node = 
-                static_cast< MetaNode * >(index.internalPointer());
+            MetaNode* node = static_cast<MetaNode*>(index.internalPointer());
             node->check_for_initialized();
 
-            if (node->brothers.size())
-                holder = node->brothers[0]->holder;
+            if (node->brothers.size()) holder = node->brothers[0]->holder;
         }
 
-        if (holder.is_valid() && 
-                core::utils::calculate_size(holder) < GSIM_DRAG_MAX_SIZE)
+        if (holder.is_valid() &&
+            core::utils::calculate_size(holder) < GSIM_DRAG_MAX_SIZE)
         {
             std::ostringstream oss;
             json::write(oss, holder.get_type_descriptor(), holder, true);
@@ -247,8 +232,8 @@ QVariant LogModel::data(const QModelIndex& index, int role) const
         }
     }
 #endif
-    else if (!index.parent().isValid() && index.column() == 0
-            && role == Qt::DecorationRole)
+    else if (!index.parent().isValid() && index.column() == 0 &&
+             role == Qt::DecorationRole)
     {
         const LogEntry& entry = m_data->entries.at(index.row());
         return *(entry.icon);
@@ -257,23 +242,22 @@ QVariant LogModel::data(const QModelIndex& index, int role) const
     return QVariant();
 }
 
-bool LogModel::setData(const QModelIndex & index, 
-        const QVariant& value, int role)
+bool LogModel::setData(const QModelIndex& index, const QVariant& value,
+                       int role)
 {
-    MetaNode * node = static_cast< MetaNode * >(index.internalPointer());
-    
+    MetaNode* node = static_cast<MetaNode*>(index.internalPointer());
+
     if (!node) return false;
 
     node->check_for_initialized();
 
     const int col = index.column() - 1;
 
-    if (col < 0 || col >= (int) node->brothers.size() 
-            || !node->brothers[col])
+    if (col < 0 || col >= (int)node->brothers.size() || !node->brothers[col])
         return false;
 
-    bool res = fromQVariant(node->descriptor, 
-            node->brothers[col]->holder, value);
+    bool res =
+        fromQVariant(node->descriptor, node->brothers[col]->holder, value);
 
     if (res)
     {
@@ -283,107 +267,91 @@ bool LogModel::setData(const QModelIndex & index,
     return res;
 }
 
-Qt::ItemFlags LogModel::flags(const QModelIndex &index) const
+Qt::ItemFlags LogModel::flags(const QModelIndex& index) const
 {
-    if (!index.isValid())
-        return 0;
+    if (!index.isValid()) return 0;
 
     // Value is editable by default
     if (index.column() && m_data->editable)
-        return Qt::ItemIsEnabled 
-            | Qt::ItemIsSelectable 
-            | Qt::ItemIsEditable
-            | Qt::ItemIsDragEnabled
-            ;
+        return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable |
+               Qt::ItemIsDragEnabled;
 
-    return Qt::ItemIsEnabled 
-        | Qt::ItemIsSelectable 
-        | Qt::ItemIsDragEnabled;
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
 }
 
-QVariant LogModel::headerData(int section, 
-        Qt::Orientation orientation, int role) const
+QVariant LogModel::headerData(int section, Qt::Orientation orientation,
+                              int role) const
 {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
     {
         switch (section)
         {
-        case 0:
-            return QString("Message");
-        case 1:
-            return QString("Value");
-        default:
-            break;
+            case 0:
+                return QString("Message");
+            case 1:
+                return QString("Value");
+            default:
+                break;
         }
     }
 
     return QVariant();
 }
 
-QModelIndex LogModel::index(int row, int column, 
-        const QModelIndex &parent) const
+QModelIndex LogModel::index(int row, int column,
+                            const QModelIndex& parent) const
 {
-    if (!hasIndex(row, column, parent))
-        return QModelIndex();
+    if (!hasIndex(row, column, parent)) return QModelIndex();
 
     if (!parent.isValid())
     {
-        return createIndex(row, column, 
-                (void *) m_data->nodes[row].get());
+        return createIndex(row, column, (void*)m_data->nodes[row].get());
     }
 
-    MetaNode * node = static_cast< MetaNode * >(
-            parent.internalPointer());
+    MetaNode* node = static_cast<MetaNode*>(parent.internalPointer());
     node->check_for_initialized();
 
-    if (row < (int) node->children.size())
+    if (row < (int)node->children.size())
     {
-        return createIndex(row, column, 
-                (void *) node->children[row].get());
+        return createIndex(row, column, (void*)node->children[row].get());
     }
 
     return QModelIndex();
 }
 
-QModelIndex LogModel::parent(const QModelIndex &index) const
+QModelIndex LogModel::parent(const QModelIndex& index) const
 {
-    if (!index.isValid())
-        return QModelIndex();
+    if (!index.isValid()) return QModelIndex();
 
-    MetaNode * node = static_cast< MetaNode * >(
-            index.internalPointer());
+    MetaNode* node = static_cast<MetaNode*>(index.internalPointer());
 
-    if (!node || !node->parent)
-        return QModelIndex();
+    if (!node || !node->parent) return QModelIndex();
 
     // parent is first level item
     if (!node->parent->parent)
     {
         // index could be changed
         int row = 0;
-        for (; row < m_data->nodes.size(); row++) 
+        for (; row < m_data->nodes.size(); row++)
             if (m_data->nodes.at(row).get() == node->parent)
-                return createIndex(row, 0, (void *) node->parent);
+                return createIndex(row, 0, (void*)node->parent);
 
         return QModelIndex();
     }
 
-    return createIndex(node->index, 0, (void *) node->parent);
+    return createIndex(node->index, 0, (void*)node->parent);
 }
 
-int LogModel::rowCount(const QModelIndex &parent) const
+int LogModel::rowCount(const QModelIndex& parent) const
 {
     /**
      * Los hijos son de la columna cero.
      */
-    if (parent.column() > 0)
-        return 0;
+    if (parent.column() > 0) return 0;
 
-    if (!parent.isValid())
-        return m_data->entries.size();
+    if (!parent.isValid()) return m_data->entries.size();
 
-    MetaNode * node = static_cast< MetaNode * >(
-            parent.internalPointer());
+    MetaNode* node = static_cast<MetaNode*>(parent.internalPointer());
     node->check_for_initialized();
 
     return node->children.size();
@@ -404,10 +372,7 @@ void LogModel::resetInternalData()
     m_data->nodes.clear();
 }
 
-int LogModel::maxEntries() const
-{
-    return m_data->maxEntries;
-}
+int LogModel::maxEntries() const { return m_data->maxEntries; }
 
 void LogModel::setMaxEntries(int max)
 {
@@ -415,15 +380,12 @@ void LogModel::setMaxEntries(int max)
 #if QT_VERSION >= 0x0401700
     m_data->entries.reserve(2 * m_data->maxEntries);
 #endif
-    
+
     // Aplica el nuevo tamaño
     removeEntries(0);
 }
 
-bool LogModel::isEditable() const
-{
-    return m_data->editable;
-}
+bool LogModel::isEditable() const { return m_data->editable; }
 
 void LogModel::setEditable(bool editable)
 {
@@ -432,14 +394,12 @@ void LogModel::setEditable(bool editable)
     reset();
 }
 
-void LogModel::inputMessage(Connection_ptr con, 
-        Message_ptr msg)
+void LogModel::inputMessage(Connection_ptr con, Message_ptr msg)
 {
     append(con, msg, true);
 }
 
-void LogModel::outputMessage(Connection_ptr con, 
-        Message_ptr msg)
+void LogModel::outputMessage(Connection_ptr con, Message_ptr msg)
 {
     append(con, msg, false);
 }
@@ -447,7 +407,7 @@ void LogModel::outputMessage(Connection_ptr con,
 void LogModel::removeEntries(int requiredFreeEntries)
 {
     // Deja espacio
-    int nRowsToBeRemoved = 
+    int nRowsToBeRemoved =
         m_data->entries.size() - m_data->maxEntries + requiredFreeEntries;
 
     // El número a eliminar no puede ser superior al de entradas
@@ -458,7 +418,7 @@ void LogModel::removeEntries(int requiredFreeEntries)
     {
         beginRemoveRows(QModelIndex(), 0, nRowsToBeRemoved - 1);
 
-        for (int i = 0; i < nRowsToBeRemoved; i++) 
+        for (int i = 0; i < nRowsToBeRemoved; i++)
         {
             // Elimina la primera
             m_data->entries.pop_front();
@@ -484,21 +444,21 @@ void LogModel::processPendingEntries()
         {
             const int diff = m_data->pendingEntries.size() - size;
 
-            // TODO No me gusta esta solución: Eliminar unas cuantas 
+            // TODO No me gusta esta solución: Eliminar unas cuantas
             // para despùés hacer 'clear'
             // Debería ser un paso de directo: Insertar desde
             // begin + diff hasta end
             m_data->pendingEntries.erase(m_data->pendingEntries.begin(),
-                    m_data->pendingEntries.begin() + diff);
+                                         m_data->pendingEntries.begin() + diff);
         }
 
-        beginInsertRows(QModelIndex(), m_data->entries.size(), 
-                m_data->entries.size() + size - 1);
+        beginInsertRows(QModelIndex(), m_data->entries.size(),
+                        m_data->entries.size() + size - 1);
 
         // Hace accesibles las entradas pendientes
         m_data->entries.append(m_data->pendingEntries);
         m_data->pendingEntries.clear();
-        
+
         m_data->delayDiff.start();
 
         endInsertRows();
@@ -516,8 +476,7 @@ void LogModel::append(Connection_ptr con, Message_ptr msg, bool is_in)
     {
         m_data->pendingEntries.push_back(entry);
 
-        if (!m_data->pendingTimer.isActive())
-            m_data->pendingTimer.start();
+        if (!m_data->pendingTimer.isActive()) m_data->pendingTimer.start();
     }
     else
     {
@@ -529,8 +488,8 @@ void LogModel::append(Connection_ptr con, Message_ptr msg, bool is_in)
 
         removeEntries(1);
 
-        beginInsertRows(QModelIndex(), m_data->entries.size(), 
-                m_data->entries.size());
+        beginInsertRows(QModelIndex(), m_data->entries.size(),
+                        m_data->entries.size());
 
         m_data->entries.push_back(entry);
 
@@ -540,9 +499,8 @@ void LogModel::append(Connection_ptr con, Message_ptr msg, bool is_in)
     }
 }
 
-void LogModel::fillLogEntry(Connection_ptr con, Message_ptr msg, 
-        bool is_in,
-        LogEntry& entry)
+void LogModel::fillLogEntry(Connection_ptr con, Message_ptr msg, bool is_in,
+                            LogEntry& entry)
 {
     entry.dateTime = QDateTime::currentDateTime();
     entry.connection = con;
@@ -551,37 +509,37 @@ void LogModel::fillLogEntry(Connection_ptr con, Message_ptr msg,
     TypeDescriptor_ptr descriptor = hold.get_type_descriptor();
 
     MetaNode_ptr metaNode(new MetaNode(descriptor));
-    
+
     // Message
     Node_ptr node(new Node(descriptor, hold));
     metaNode->brothers.push_back(node);
-    
+
     m_data->nodes.push_back(metaNode);
-    
+
     entry.is_in_entry = is_in;
     entry.msg = msg;
 
     if (is_in)
     {
-        entry.text = QString("Incoming message in ") + con->name() + " - " 
-            + msg->name().c_str();
+        entry.text = QString("Incoming message in ") + con->name() + " - " +
+                     msg->name().c_str();
         entry.icon = &m_data->inputIcon;
-        
+
         entry.color = QColor(Qt::green);
     }
     else
     {
-        entry.text = QString("Outgoing message in ") + con->name() + " - " 
-            + msg->name().c_str();
+        entry.text = QString("Outgoing message in ") + con->name() + " - " +
+                     msg->name().c_str();
         entry.icon = &m_data->outputIcon;
 
         entry.color = QColor(Qt::yellow);
     }
 }
 
-const LogModel::LogEntry& LogModel::getLogEntry(int row) const 
-{ 
-    return m_data->entries.at(row); 
+const LogModel::LogEntry& LogModel::getLogEntry(int row) const
+{
+    return m_data->entries.at(row);
 }
 
 /*

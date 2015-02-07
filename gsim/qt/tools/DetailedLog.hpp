@@ -36,10 +36,8 @@ class DetailedLogItem : public QDialog
 {
     Q_OBJECT
 public:
-    DetailedLogItem(
-            DetailedLogController * controller,
-            TypeDescriptor_ptr type, 
-            QWidget * parent);
+    DetailedLogItem(DetailedLogController* controller, TypeDescriptor_ptr type,
+                    QWidget* parent);
     ~DetailedLogItem();
 
 public slots:
@@ -77,4 +75,3 @@ protected:
 } // namespace gsim
 
 #endif /* GSIM_QT_DETAILEDLOG_HPP */
-

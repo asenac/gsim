@@ -41,7 +41,7 @@
 
 using namespace gsim::qt;
 
-typedef std::map< Connection_ptr, ConnectionView_ptr > connections_t;
+typedef std::map<Connection_ptr, ConnectionView_ptr> connections_t;
 
 enum Tool
 {
@@ -52,29 +52,25 @@ enum Tool
     kToolMax
 };
 
-namespace  
+namespace
 {
-    const char * toolTitles[] = {
-        "Input value viewer",
-        "Plot tool",
-        "Dump tool",
-        "Sequence tool"
-    };
+    const char* toolTitles[] = {"Input value viewer", "Plot tool", "Dump tool",
+                                "Sequence tool"};
 
-} // namespace 
+}  // namespace
 
 class MainWindow::Data
 {
 public:
-    MainWindow * this_;
+    MainWindow* this_;
 
-    Data(MainWindow * this__) : 
-        this_(this__),
-        controller(NULL), 
-        logModel(NULL),
-        appLogModel(NULL),
-        lastConnectionDock(NULL),
-        aboutText("No description available.")
+    Data(MainWindow* this__)
+        : this_(this__),
+          controller(NULL),
+          logModel(NULL),
+          appLogModel(NULL),
+          lastConnectionDock(NULL),
+          aboutText("No description available.")
     {
         ::gsim::qt::initialize();
 
@@ -88,56 +84,56 @@ public:
         delete logModel;
         delete appLogModel;
 
-        for (unsigned int i = 0; i < tools.size(); i++) 
+        for (unsigned int i = 0; i < tools.size(); i++)
         {
             delete tools[i];
             delete toolWindows[i];
         }
     }
 
-    Controller * controller;
+    Controller* controller;
     connections_t connections;
 
     // Widgets
-    QMdiArea * mdiArea;
+    QMdiArea* mdiArea;
 
     // Menus
-    QMenu * fileMenu;
-    QMenu * connectionMenu;
-    QMenu * toolsMenu;
-    QMenu * windowMenu;
-    QMenu * helpMenu;
+    QMenu* fileMenu;
+    QMenu* connectionMenu;
+    QMenu* toolsMenu;
+    QMenu* windowMenu;
+    QMenu* helpMenu;
 
-    LogModel * logModel;
-    DetailedLogController * detailedLog;
+    LogModel* logModel;
+    DetailedLogController* detailedLog;
 
-    ApplicationLogModel * appLogModel;
+    ApplicationLogModel* appLogModel;
 
-    MessageModel * inputMessageModel;
-    MessageModel * outputMessageModel;
+    MessageModel* inputMessageModel;
+    MessageModel* outputMessageModel;
 
-    QDockWidget * inDockWidget;
-    QDockWidget * outDockWidget;
+    QDockWidget* inDockWidget;
+    QDockWidget* outDockWidget;
 
-    QDockWidget * logDock;
-    QDockWidget * appLogDock;
-    QDockWidget * lastConnectionDock;
+    QDockWidget* logDock;
+    QDockWidget* appLogDock;
+    QDockWidget* lastConnectionDock;
 
     QString aboutText;
 
     // Tools
-    std::vector< AbstractTool * > tools;
-    std::vector< QMdiSubWindow * > toolWindows;
+    std::vector<AbstractTool*> tools;
+    std::vector<QMdiSubWindow*> toolWindows;
 
     void createTool(Tool tool)
     {
         if (!tools[tool])
         {
-            AbstractTool * toolInstance = NULL;
-            switch(tool)
+            AbstractTool* toolInstance = NULL;
+            switch (tool)
             {
                 case kValueViewer:
-                    toolInstance = new ValueViewerTool(this_); 
+                    toolInstance = new ValueViewerTool(this_);
                     break;
                 case kPlotTool:
                     createPlotTool();
@@ -163,7 +159,7 @@ public:
 
                 connections_t::const_iterator it = connections.begin();
 
-                for(; it != connections.end(); it++)
+                for (; it != connections.end(); it++)
                 {
                     toolInstance->registerInstance(it->first);
                 }
@@ -181,7 +177,7 @@ public:
             QLibrary lib("gsim_qwt");
             lib.load();
 
-            create_t create = (create_t) lib.resolve("createPlotTool");
+            create_t create = (create_t)lib.resolve("createPlotTool");
 
             if (create)
             {
@@ -190,9 +186,9 @@ public:
             }
             else
             {
-                QMessageBox::critical(this_, "Error initializing plot tool", 
-                        "Unable to load gsim_qwt. "
-                        "Ensure you have built gsim with qwt.");
+                QMessageBox::critical(this_, "Error initializing plot tool",
+                                      "Unable to load gsim_qwt. "
+                                      "Ensure you have built gsim with qwt.");
             }
         }
     }
@@ -210,14 +206,14 @@ public:
     }
 };
 
-MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags) :
-    QMainWindow(parent, flags), m_data(new Data(this))
+MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
+    : QMainWindow(parent, flags), m_data(new Data(this))
 {
     {
         m_data->inputMessageModel = new MessageModel(MessageModel::kIn, this);
         m_data->inputMessageModel->setDisplayParameters(false);
         m_data->inDockWidget = new QDockWidget("Incoming Messages");
-        QTreeView * view = new QTreeView();
+        QTreeView* view = new QTreeView();
         view->setExpandsOnDoubleClick(false);
         view->setModel(m_data->inputMessageModel);
         view->setHeaderHidden(true);
@@ -235,11 +231,11 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags) :
         view->setHeaderHidden(true);
         m_data->outDockWidget->setWidget(view);
         addDockWidget(Qt::LeftDockWidgetArea, m_data->outDockWidget);
-        
+
         QTimer::singleShot(100, view, SLOT(expandAll()));
 
-        connect(view, SIGNAL(doubleClicked(const QModelIndex&)),
-                this, SLOT(outMessageClicked(const QModelIndex&)));
+        connect(view, SIGNAL(doubleClicked(const QModelIndex&)), this,
+                SLOT(outMessageClicked(const QModelIndex&)));
 
         tabifyDockWidget(m_data->outDockWidget, m_data->inDockWidget);
 
@@ -261,18 +257,16 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags) :
 
         m_data->detailedLog = new DetailedLogController(m_data->mdiArea);
         m_data->detailedLog->setLogModel(m_data->logModel);
-        
+
         // View
-        QTreeView * view = new TreeView();
+        QTreeView* view = new TreeView();
         view->setModel(m_data->logModel);
         view->setDragDropMode(QAbstractItemView::DragOnly);
         view->setDragEnabled(true);
 
 #if 1
-        connect(view, 
-                SIGNAL(doubleClicked(const QModelIndex&)),
-                m_data->detailedLog, 
-                SLOT(showDetails(const QModelIndex&)));
+        connect(view, SIGNAL(doubleClicked(const QModelIndex&)),
+                m_data->detailedLog, SLOT(showDetails(const QModelIndex&)));
 #else
         // TODO temporal, prueba de concepto
         m_data->logModel->setEditable(true);
@@ -291,7 +285,7 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags) :
     {
         m_data->appLogModel = new ApplicationLogModel(this);
 
-        QTreeView * view = new TreeView();
+        QTreeView* view = new TreeView();
         view->setModel(m_data->appLogModel);
 
         // Column Width
@@ -300,25 +294,25 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags) :
         m_data->appLogDock = new QDockWidget("Application log");
         m_data->appLogDock->setWidget(view);
         addDockWidget(Qt::BottomDockWidgetArea, m_data->appLogDock);
-        
+
         tabifyDockWidget(m_data->appLogDock, m_data->logDock);
     }
 
     setStatusBar(new QStatusBar());
 
     // Load configuration
-    QAction * loadConfigurationAction = new QAction(
-            style()->standardIcon(QStyle::SP_DialogOpenButton),
-            "&Load configuration", this);
-    connect(loadConfigurationAction, SIGNAL(triggered()), 
-            this, SLOT(loadConfiguration()));
+    QAction* loadConfigurationAction =
+        new QAction(style()->standardIcon(QStyle::SP_DialogOpenButton),
+                    "&Load configuration", this);
+    connect(loadConfigurationAction, SIGNAL(triggered()), this,
+            SLOT(loadConfiguration()));
 
     // Save configuration
-    QAction * saveConfigurationAction = new QAction(
-            style()->standardIcon(QStyle::SP_DialogSaveButton),
-            "&Save configuration", this);
-    connect(saveConfigurationAction, SIGNAL(triggered()), 
-            this, SLOT(saveConfiguration()));
+    QAction* saveConfigurationAction =
+        new QAction(style()->standardIcon(QStyle::SP_DialogSaveButton),
+                    "&Save configuration", this);
+    connect(saveConfigurationAction, SIGNAL(triggered()), this,
+            SLOT(saveConfiguration()));
 
     // Menus
     {
@@ -326,7 +320,7 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags) :
         m_data->fileMenu->addAction(loadConfigurationAction);
         m_data->fileMenu->addAction(saveConfigurationAction);
         m_data->fileMenu->addSeparator();
-        QAction * closeAction = 
+        QAction* closeAction =
             m_data->fileMenu->addAction("&Exit", this, SLOT(close()));
         closeAction->setShortcut(QKeySequence::Close);
 
@@ -336,72 +330,69 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags) :
         // Tools
         m_data->toolsMenu = menuBar()->addMenu("&Tools");
         {
-            m_data->toolsMenu->addAction("&Input value viewer", 
-                    this, SLOT(showValueViewer()));
-            m_data->toolsMenu->addAction("&Plot tool", 
-                    this, SLOT(showPlotTool()));
-            m_data->toolsMenu->addAction("&Dump tool", 
-                    this, SLOT(showDumpTool()));
+            m_data->toolsMenu->addAction("&Input value viewer", this,
+                                         SLOT(showValueViewer()));
+            m_data->toolsMenu->addAction("&Plot tool", this,
+                                         SLOT(showPlotTool()));
+            m_data->toolsMenu->addAction("&Dump tool", this,
+                                         SLOT(showDumpTool()));
 
             m_data->toolsMenu->addSeparator();
 
-            m_data->toolsMenu->addAction("&Sequence tool", 
-                    this, SLOT(showSequenceTool()));
+            m_data->toolsMenu->addAction("&Sequence tool", this,
+                                         SLOT(showSequenceTool()));
         }
 
         // Window
         m_data->windowMenu = menuBar()->addMenu("&Window");
         {
-            QAction * showLogAction = 
-                m_data->windowMenu->addAction("Show log", 
-                        m_data->logDock, SLOT(show()));
-            connect(showLogAction, SIGNAL(triggered()), 
-                    m_data->logDock, SLOT(raise()));
-            m_data->windowMenu->addAction("Clear log", 
-                    m_data->logModel, SLOT(clearLog()));
+            QAction* showLogAction = m_data->windowMenu->addAction(
+                "Show log", m_data->logDock, SLOT(show()));
+            connect(showLogAction, SIGNAL(triggered()), m_data->logDock,
+                    SLOT(raise()));
+            m_data->windowMenu->addAction("Clear log", m_data->logModel,
+                                          SLOT(clearLog()));
 
             // Set max log size
-            QAction * setMaxLogSizeAction = new QAction(
-                    "Set log size", this);
-            connect(setMaxLogSizeAction, SIGNAL(triggered()), 
-                    this, SLOT(showSetMaxLogSize()));
+            QAction* setMaxLogSizeAction = new QAction("Set log size", this);
+            connect(setMaxLogSizeAction, SIGNAL(triggered()), this,
+                    SLOT(showSetMaxLogSize()));
             m_data->windowMenu->addAction(setMaxLogSizeAction);
 
             m_data->windowMenu->addSeparator();
 
             // Application log
             {
-                QAction * showLogAction = 
-                    m_data->windowMenu->addAction("Show application log", 
-                            m_data->appLogDock, SLOT(show()));
-                connect(showLogAction, SIGNAL(triggered()), 
-                        m_data->appLogDock, SLOT(raise()));
-                m_data->windowMenu->addAction("Clear application log", 
-                        m_data->appLogModel, SLOT(clearLog()));
+                QAction* showLogAction = m_data->windowMenu->addAction(
+                    "Show application log", m_data->appLogDock, SLOT(show()));
+                connect(showLogAction, SIGNAL(triggered()), m_data->appLogDock,
+                        SLOT(raise()));
+                m_data->windowMenu->addAction("Clear application log",
+                                              m_data->appLogModel,
+                                              SLOT(clearLog()));
             }
-            
+
             m_data->windowMenu->addSeparator();
 
-            QAction * action = NULL;
+            QAction* action = NULL;
 
-            action = m_data->windowMenu->addAction("Inconming messages",
-                    m_data->inDockWidget, SLOT(show()));
+            action = m_data->windowMenu->addAction(
+                "Inconming messages", m_data->inDockWidget, SLOT(show()));
             connect(action, SIGNAL(triggered()), m_data->inDockWidget,
                     SLOT(raise()));
 
-            action = m_data->windowMenu->addAction("Outgoing messages",
-                    m_data->outDockWidget, SLOT(show()));
+            action = m_data->windowMenu->addAction(
+                "Outgoing messages", m_data->outDockWidget, SLOT(show()));
             connect(action, SIGNAL(triggered()), m_data->outDockWidget,
                     SLOT(raise()));
         }
 
         m_data->helpMenu = menuBar()->addMenu("&Help");
-        m_data->helpMenu->addAction("&About GSIM", this, 
-                SLOT(showAboutGSIM()));
-        m_data->helpMenu->addAction("&About this simulator", this, 
-                SLOT(showAbout()));
+        m_data->helpMenu->addAction("&About GSIM", this, SLOT(showAboutGSIM()));
+        m_data->helpMenu->addAction("&About this simulator", this,
+                                    SLOT(showAbout()));
 
-        QToolBar * toolBar = addToolBar("File");
+        QToolBar* toolBar = addToolBar("File");
         toolBar->addAction(loadConfigurationAction);
         toolBar->addAction(saveConfigurationAction);
     }
@@ -410,79 +401,61 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags) :
 
     // Para mostrar los mensajes/errores del motor
     // de las herramientas
-    connect(Engine::instance(), 
-            SIGNAL(error(const QString&)),
-            this,
+    connect(Engine::instance(), SIGNAL(error(const QString&)), this,
             SLOT(displayError(const QString&)));
-    connect(Engine::instance(), 
-            SIGNAL(message(const QString&)),
-            this,
+    connect(Engine::instance(), SIGNAL(message(const QString&)), this,
             SLOT(displayMessage(const QString&)));
 }
 
-MainWindow::~MainWindow()
-{
-    delete m_data;
-}
+MainWindow::~MainWindow() { delete m_data; }
 
-void MainWindow::setController(Controller * controller)
+void MainWindow::setController(Controller* controller)
 {
     if (m_data->controller)
     {
         // TODO disconnect signals
         disconnect(m_data->controller,
-                SIGNAL(connectionCreated(Connection_ptr)),
-                this,
-                SLOT(connectionCreated(Connection_ptr)));
+                   SIGNAL(connectionCreated(Connection_ptr)), this,
+                   SLOT(connectionCreated(Connection_ptr)));
 
-        disconnect(m_data->controller, 
-                SIGNAL(messageSent(Connection_ptr, Message_ptr)),
-                m_data->logModel, 
-                SLOT(outputMessage(Connection_ptr, Message_ptr)));
-        disconnect(m_data->controller, 
-                SIGNAL(messageReceived(Connection_ptr, Message_ptr)),
-                m_data->logModel, 
-                SLOT(inputMessage(Connection_ptr, Message_ptr)));
+        disconnect(m_data->controller,
+                   SIGNAL(messageSent(Connection_ptr, Message_ptr)),
+                   m_data->logModel,
+                   SLOT(outputMessage(Connection_ptr, Message_ptr)));
+        disconnect(m_data->controller,
+                   SIGNAL(messageReceived(Connection_ptr, Message_ptr)),
+                   m_data->logModel,
+                   SLOT(inputMessage(Connection_ptr, Message_ptr)));
 
-        disconnect(m_data->controller, 
-                SIGNAL(error(const QString&)),
-                this,
-                SLOT(displayError(const QString&)));
-        disconnect(m_data->controller, 
-                SIGNAL(message(const QString&)),
-                this,
-                SLOT(displayMessage(const QString&)));
+        disconnect(m_data->controller, SIGNAL(error(const QString&)), this,
+                   SLOT(displayError(const QString&)));
+        disconnect(m_data->controller, SIGNAL(message(const QString&)), this,
+                   SLOT(displayMessage(const QString&)));
 
         // TODO m_data->inputMessageModel->clear();
         // TODO m_data->outputMessageModel->clear();
     }
-    
+
     m_data->controller = controller;
 
     if (m_data->controller)
     {
         // TODO connect signals
-        connect(m_data->controller,
-                SIGNAL(connectionCreated(Connection_ptr)),
-                this,
-                SLOT(connectionCreated(Connection_ptr)));
+        connect(m_data->controller, SIGNAL(connectionCreated(Connection_ptr)),
+                this, SLOT(connectionCreated(Connection_ptr)));
 
-        connect(m_data->controller, 
+        connect(m_data->controller,
                 SIGNAL(messageSent(Connection_ptr, Message_ptr)),
-                m_data->logModel, 
+                m_data->logModel,
                 SLOT(outputMessage(Connection_ptr, Message_ptr)));
-        connect(m_data->controller, 
+        connect(m_data->controller,
                 SIGNAL(messageReceived(Connection_ptr, Message_ptr)),
-                m_data->logModel, 
+                m_data->logModel,
                 SLOT(inputMessage(Connection_ptr, Message_ptr)));
 
-        connect(m_data->controller, 
-                SIGNAL(error(const QString&)),
-                this,
+        connect(m_data->controller, SIGNAL(error(const QString&)), this,
                 SLOT(displayError(const QString&)));
-        connect(m_data->controller, 
-                SIGNAL(message(const QString&)),
-                this,
+        connect(m_data->controller, SIGNAL(message(const QString&)), this,
                 SLOT(displayMessage(const QString&)));
     }
 }
@@ -504,7 +477,7 @@ void MainWindow::connectionCreated(Connection_ptr con)
         statusBar()->addPermanentWidget(view->statusWidget());
 
         // Connection widget
-        QDockWidget * connectionDock = view->connectionDockWidget();
+        QDockWidget* connectionDock = view->connectionDockWidget();
         addDockWidget(Qt::LeftDockWidgetArea, connectionDock);
 
         if (m_data->lastConnectionDock)
@@ -517,62 +490,41 @@ void MainWindow::connectionCreated(Connection_ptr con)
     }
 }
 
-QMdiArea * MainWindow::mdiArea() const
-{
-    return m_data->mdiArea;
-}
+QMdiArea* MainWindow::mdiArea() const { return m_data->mdiArea; }
 
-void MainWindow::showValueViewer()
-{
-    m_data->showTool(kValueViewer);
-}
+void MainWindow::showValueViewer() { m_data->showTool(kValueViewer); }
 
-void MainWindow::showPlotTool()
-{
-    m_data->showTool(kPlotTool);
-}
+void MainWindow::showPlotTool() { m_data->showTool(kPlotTool); }
 
-void MainWindow::showDumpTool()
-{
-    m_data->showTool(kDumpTool);
-}
+void MainWindow::showDumpTool() { m_data->showTool(kDumpTool); }
 
-void MainWindow::showSequenceTool()
-{
-    m_data->showTool(kSequenceTool);
-}
+void MainWindow::showSequenceTool() { m_data->showTool(kSequenceTool); }
 
-void MainWindow::setAboutText(const QString& text)
-{
-    m_data->aboutText = text;
-}
+void MainWindow::setAboutText(const QString& text) { m_data->aboutText = text; }
 
 void MainWindow::showAbout()
 {
-    QMessageBox::about(this, "About this simulator", 
-            m_data->aboutText);
+    QMessageBox::about(this, "About this simulator", m_data->aboutText);
 }
 
 void MainWindow::showAboutGSIM()
 {
-    static const char * aboutText = 
-        "GSIM Version " GSIM_VERSION "\n"
-        "Build " __DATE__ "\n"
+    static const char* aboutText =
+        "GSIM Version " GSIM_VERSION
+        "\n"
+        "Build " __DATE__
+        "\n"
         "Developed by: \n Andres Senac <andres@senac.es>";
 
-    QMessageBox::about(this, "About GSIM", 
-            aboutText);
+    QMessageBox::about(this, "About GSIM", aboutText);
 }
 
 void MainWindow::showSetMaxLogSize()
-{   
+{
     bool ok = false;
-    int res = 
-        QInputDialog::getInt(this, 
-                "Maximum log size",
-                "Insert the log maximum size", 
-                m_data->logModel->maxEntries(),
-                1, 10000, 1, &ok);
+    int res = QInputDialog::getInt(
+        this, "Maximum log size", "Insert the log maximum size",
+        m_data->logModel->maxEntries(), 1, 10000, 1, &ok);
 
     if (ok)
     {
@@ -588,8 +540,8 @@ void MainWindow::outMessageClicked(const QModelIndex& index)
 
         connections_t::iterator it;
 
-        if (con && ((it = m_data->connections.find(con)) 
-                    != m_data->connections.end()))
+        if (con &&
+            ((it = m_data->connections.find(con)) != m_data->connections.end()))
         {
             it->second->showSenderDialog(index.row());
         }
@@ -600,8 +552,8 @@ void MainWindow::outMessageClicked(const QModelIndex& index)
 
         connections_t::iterator it;
 
-        if (con && ((it = m_data->connections.find(con)) 
-                    != m_data->connections.end()))
+        if (con &&
+            ((it = m_data->connections.find(con)) != m_data->connections.end()))
         {
             it->second->showConfig();
         }
@@ -610,18 +562,16 @@ void MainWindow::outMessageClicked(const QModelIndex& index)
 
 void MainWindow::loadConfiguration()
 {
-    const QString file = 
-        QFileDialog::getOpenFileName(0,
-                "Select a file", ".",
-                tr("GSIM generic application configuration (*.cfg)"));
+    const QString file = QFileDialog::getOpenFileName(
+        0, "Select a file", ".",
+        tr("GSIM generic application configuration (*.cfg)"));
 
     if (!file.isEmpty())
     {
         QVariant var;
 
         // Try to Read a JSON file
-        bool res = 
-            fromJsonFile(file.toStdString().c_str(), var);
+        bool res = fromJsonFile(file.toStdString().c_str(), var);
 
         if (res)
         {
@@ -629,25 +579,21 @@ void MainWindow::loadConfiguration()
         }
         else
         {
-            QMessageBox::critical(this, 
-                    "Error loading configuration", 
-                    QString("Unable to load file ") +
-                    file);
+            QMessageBox::critical(this, "Error loading configuration",
+                                  QString("Unable to load file ") + file);
         }
     }
 }
 
 void MainWindow::saveConfiguration()
 {
-    QString file = 
-        QFileDialog::getSaveFileName(0, 
-                "Select a file", ".",
-                tr("GSIM generic application configuration (*.cfg)"));
+    QString file = QFileDialog::getSaveFileName(
+        0, "Select a file", ".",
+        tr("GSIM generic application configuration (*.cfg)"));
 
     if (!file.isEmpty())
     {
-        if(!file.endsWith(".cfg"))
-            file.append(".cfg");
+        if (!file.endsWith(".cfg")) file.append(".cfg");
 
         QVariant settings;
         save(settings);
@@ -667,11 +613,12 @@ void MainWindow::load(const QVariant& settings)
     {
         const QVariantMap connections = map["Connections"].toMap();
 
-        for (QVariantMap::const_iterator it = connections.begin(); 
-                it != connections.end(); ++it) 
+        for (QVariantMap::const_iterator it = connections.begin();
+             it != connections.end(); ++it)
         {
             // Obtiene la conexión a partir de su nombre
-            const Connection_ptr con(m_data->controller->getConnection(it.key()));
+            const Connection_ptr con(
+                m_data->controller->getConnection(it.key()));
 
             if (con)
             {
@@ -686,16 +633,15 @@ void MainWindow::load(const QVariant& settings)
         }
     }
 
-    for (int i = 0; i < kToolMax; i++) 
+    for (int i = 0; i < kToolMax; i++)
         if (map.contains(toolTitles[i]))
         {
             // Intenta crear la herramienta
-            m_data->createTool(static_cast< Tool >(i));
+            m_data->createTool(static_cast<Tool>(i));
 
             // Si la ha creado, carga su configuración.
             // El plot, por ejemplo, puede no cargarse
-            if (m_data->tools[i])
-                m_data->tools[i]->load(map[toolTitles[i]]);
+            if (m_data->tools[i]) m_data->tools[i]->load(map[toolTitles[i]]);
         }
 }
 
@@ -704,8 +650,8 @@ void MainWindow::save(QVariant& settings)
     QVariantMap map;
     QVariantMap connections;
 
-    for (connections_t::const_iterator it = m_data->connections.begin(); 
-            it != m_data->connections.end(); ++it) 
+    for (connections_t::const_iterator it = m_data->connections.begin();
+         it != m_data->connections.end(); ++it)
     {
         it->second->save(connections[it->first->name()]);
     }
@@ -713,9 +659,13 @@ void MainWindow::save(QVariant& settings)
     map["Connections"] = connections;
 
     // Tools
-    for (int i = 0; i < kToolMax; i++) 
-        if (m_data->tools[i]) 
+    for (int i = 0; i < kToolMax; i++)
+    {
+        if (m_data->tools[i])
+        {
             m_data->tools[i]->save(map[toolTitles[i]]);
+        }
+    }
 
     settings = map;
 }
@@ -733,4 +683,3 @@ void MainWindow::displayError(const QString& err)
     m_data->appLogDock->show();
     m_data->appLogDock->raise();
 }
-
