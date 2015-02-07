@@ -17,53 +17,43 @@
  */
 
 #include "initialize.hpp"
-#include <gsim/core/properties.hpp> // initializer
+#include <gsim/core/properties.hpp>  // initializer
 #include <gsim/qt/model/Connection.hpp>
 #include <gsim/qt/tools/Engine.hpp>
 #include <gsim/qt/tools/Sender.hpp>
 #include <gsim/qt/proc/MessageProcessor.hpp>
+#include <QAbstractSocket>
 
-namespace  
+namespace
 {
-
     void __initialize()
     {
         // Qt
         {
             using namespace gsim::qt;
 
-            qRegisterMetaType< Message_ptr >
-                ("Message_ptr");
-            qRegisterMetaType< Connection_ptr >
-                ("Connection_ptr");
-            qRegisterMetaType< ConnectionConfig_ptr >
-                ("ConnectionConfig_ptr");
-            qRegisterMetaType< ConnectionStatus >
-                ("ConnectionStatus");
-            qRegisterMetaType< MessageProcessor_ptr >
-                ("MessageProcessor_ptr");
-            qRegisterMetaType< Holder >
-                ("Holder");
-            qRegisterMetaType< SenderConfig_ptr >
-                ("SenderConfig_ptr");
+            qRegisterMetaType<Message_ptr>("Message_ptr");
+            qRegisterMetaType<Connection_ptr>("Connection_ptr");
+            qRegisterMetaType<ConnectionConfig_ptr>("ConnectionConfig_ptr");
+            qRegisterMetaType<ConnectionStatus>("ConnectionStatus");
+            qRegisterMetaType<MessageProcessor_ptr>("MessageProcessor_ptr");
+            qRegisterMetaType<Holder>("Holder");
+            qRegisterMetaType<SenderConfig_ptr>("SenderConfig_ptr");
+            qRegisterMetaType<QAbstractSocket::SocketState>(
+                "QAbstractSocket::SocketState");
 
             // Inicia el motor de las herramientas
             Engine::instance();
         }
     }
 
-} // namespace 
+}  // namespace
 
-namespace gsim 
+namespace gsim
 {
-namespace qt 
-{
-
-    void initialize()
+    namespace qt
     {
-        static core::initializer _instance(&__initialize);
-    }
+        void initialize() { static core::initializer _instance(&__initialize); }
 
-} // namespace qt
-} // namespace gsim
-
+    }  // namespace qt
+}  // namespace gsim

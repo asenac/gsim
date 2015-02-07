@@ -27,25 +27,22 @@
 
 using namespace gsim::qt;
 
-typedef boost::shared_lock< boost::shared_mutex > shared_lock;
-typedef boost::unique_lock< boost::shared_mutex > unique_lock;
+typedef boost::shared_lock<boost::shared_mutex> shared_lock;
+typedef boost::unique_lock<boost::shared_mutex> unique_lock;
 
-Connection::Functor::~Functor()
-{
-}
+Connection::Functor::~Functor() {}
 
 ConnectionConfig::~ConnectionConfig() {}
 
 class Connection::Data
 {
 public:
-
-    Data(ConnectionDescriptor_ptr descriptor_) : 
-        status(kStatusDisconnected), 
-        descriptor(descriptor_),
-        name("Connection"),
-        type("TCP"),
-        statusManager(NULL)
+    Data(ConnectionDescriptor_ptr descriptor_)
+        : status(kStatusDisconnected),
+          descriptor(descriptor_),
+          name("Connection"),
+          type("TCP"),
+          statusManager(NULL)
     {
         ::gsim::qt::initialize();
 
@@ -68,42 +65,37 @@ public:
     ConnectionConfig_ptr config;
 
     boost::shared_mutex tableMutex;
-    typedef std::map< core::descriptor_ptr, Functor_ptr > table_t;
+    typedef std::map<core::descriptor_ptr, Functor_ptr> table_t;
     table_t table;
 
     boost::shared_mutex statusManagerMutex;
-    StatusManager * statusManager;
+    StatusManager* statusManager;
 };
 
-Connection::Connection(
-        ConnectionDescriptor_ptr descriptor,
-        QObject * parent) :
-    QObject(parent), m_data(new Data(descriptor))
+Connection::Connection(ConnectionDescriptor_ptr descriptor, QObject* parent)
+    : QObject(parent), m_data(new Data(descriptor))
 {
 }
 
-Connection::~Connection()
+Connection::~Connection() { delete m_data; }
+
+Controller* Connection::controller() const
 {
-    delete m_data;
+    return dynamic_cast<Controller*>(parent());
 }
 
-Controller * Connection::controller() const
-{
-    return dynamic_cast< Controller * >(parent());
-}
-
-void Connection::setStatusManager(StatusManager * manager)
+void Connection::setStatusManager(StatusManager* manager)
 {
     unique_lock lock(m_data->statusManagerMutex);
     m_data->statusManager = manager;
 }
 
-StatusManager * Connection::statusManager() const
+StatusManager* Connection::statusManager() const
 {
     shared_lock lock(m_data->statusManagerMutex);
     return m_data->statusManager;
 }
-    
+
 void Connection::sendMessage(Message_ptr msg)
 {
     if (status() == kStatusConnected && doSendMessage(msg))
@@ -123,15 +115,15 @@ void Connection::setConfig(ConnectionConfig_ptr cfg)
     }
 }
 
-void Connection::setConfig(ConnectionConfig * cfg)
+void Connection::setConfig(ConnectionConfig* cfg)
 {
     setConfig(ConnectionConfig_ptr(cfg));
 }
 
 void Connection::forwardTo(Connection_ptr con)
 {
-    connect(this, SIGNAL(messageReceived(Message_ptr)),
-            con.get(), SLOT(sendMessage(Message_ptr)));
+    connect(this, SIGNAL(messageReceived(Message_ptr)), con.get(),
+            SLOT(sendMessage(Message_ptr)));
 }
 
 /*
@@ -216,8 +208,7 @@ bool Connection::doSendMessage(Message_ptr msg)
     core::holder h(msg->holder());
 
     // Busca el functor en la tabla
-    Data::table_t::iterator it = 
-        m_data->table.find(h.get_type_descriptor());
+    Data::table_t::iterator it = m_data->table.find(h.get_type_descriptor());
 
     if (it != m_data->table.end())
     {
@@ -227,8 +218,8 @@ bool Connection::doSendMessage(Message_ptr msg)
     return false;
 }
 
-void Connection::doRegisterMethod(core::descriptor_ptr descriptor, 
-        Functor_ptr f) 
+void Connection::doRegisterMethod(core::descriptor_ptr descriptor,
+                                  Functor_ptr f)
 {
     unique_lock lock(m_data->tableMutex);
     m_data->table[descriptor->get_type_descriptor()] = f;
@@ -244,8 +235,8 @@ bool Connection::sendStatus(const QString& name)
 
         if (h.is_valid())
         {
-            Message_ptr message(new ::gsim::core::message(
-                        name.toStdString(), h));
+            Message_ptr message(
+                new ::gsim::core::message(name.toStdString(), h));
 
             bool res = doSendMessage(message);
 
@@ -257,4 +248,3 @@ bool Connection::sendStatus(const QString& name)
 
     return false;
 }
-

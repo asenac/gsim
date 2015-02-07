@@ -24,37 +24,36 @@ using namespace gsim::qt;
 
 namespace
 {
-
-ConnectionStatus translate(QAbstractSocket::SocketState st)
-{
-    ConnectionStatus res = kStatusDisconnected;
-
-    switch (st)
+    ConnectionStatus translate(QAbstractSocket::SocketState st)
     {
-        case QAbstractSocket::ConnectingState:
-        case QAbstractSocket::BoundState:
-            res = kStatusListening;
-            break;
-        case QAbstractSocket::ConnectedState:
-            res = kStatusConnected;
-            break;
-        default:
-            break;
+        ConnectionStatus res = kStatusDisconnected;
+
+        switch (st)
+        {
+            case QAbstractSocket::ConnectingState:
+            case QAbstractSocket::BoundState:
+                res = kStatusListening;
+                break;
+            case QAbstractSocket::ConnectedState:
+                res = kStatusConnected;
+                break;
+            default:
+                break;
+        }
+
+        return res;
     }
 
-    return res;
-}
+}  // namespace
 
-} // namespace
-
-GenericConnection::GenericConnection(QObject * parent) :
-    Connection(ConnectionDescriptor_ptr(), parent), m_data(new Data(this))
+GenericConnection::GenericConnection(QObject* parent)
+    : Connection(ConnectionDescriptor_ptr(), parent), m_data(new Data(this))
 {
 }
 
 GenericConnection::GenericConnection(ConnectionDescriptor_ptr descriptor,
-        QObject * parent) :
-    Connection(descriptor, parent), m_data(new Data(this))
+                                     QObject* parent)
+    : Connection(descriptor, parent), m_data(new Data(this))
 {
 }
 
@@ -64,12 +63,12 @@ GenericConnection::~GenericConnection()
     delete m_data;
 }
 
-std::size_t GenericConnection::processData(const char * data, std::size_t size)
+std::size_t GenericConnection::processData(const char* data, std::size_t size)
 {
     return size;
 }
 
-void GenericConnection::send(const char * data, std::size_t size)
+void GenericConnection::send(const char* data, std::size_t size)
 {
     if (!m_data->connection.isNull())
     {
@@ -109,10 +108,10 @@ bool GenericConnection::Data::applyConfig(ConnectionConfig_ptr cfg_)
 
         res = true;
     }
-    else // if (connection.isNull())
+    else  // if (connection.isNull())
     {
-        UDPConnectionConfig * udpCfg =
-            dynamic_cast< UDPConnectionConfig * >(cfg_.get());
+        UDPConnectionConfig* udpCfg =
+            dynamic_cast<UDPConnectionConfig*>(cfg_.get());
 
         if (udpCfg)
         {
@@ -183,8 +182,8 @@ void GenericConnection::Data::readPendingDataUDP()
 
             socket->readDatagram(buffer.data() + offset, avail);
 
-            //std::size_t consume =
-                this_->processData(buffer.data(), buffer.size());
+            // std::size_t consume =
+            this_->processData(buffer.data(), buffer.size());
 
             buffer.resize(0);
         }
