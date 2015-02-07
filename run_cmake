@@ -1,0 +1,1 @@
+cmake -DCMAKE_FRAMEWORK_PATH=/usr/local/Cellar/qwt/6.1.1/lib ..

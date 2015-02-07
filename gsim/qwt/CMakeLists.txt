@@ -1,4 +1,4 @@
-include_directories(${Qwt6_INCLUDE_DIR})
+include_directories(${QWT_INCLUDE_DIR})
 
 set(gsim_qwt_EXPORTED_HEADERS
     export.hpp
@@ -31,7 +31,8 @@ set(gsim_qwt_SRCS
 set(gsim_qwt_LIBS
     ${QT_LIBRARIES}
     gsim
-    ${Qwt6_Qt4_LIBRARY}
+    gsim_qt
+    ${QWT_LIBRARY}
 )
 
 # NOTE: QT bug: https://bugreports.qt.nokia.com/browse/QTBUG-22829

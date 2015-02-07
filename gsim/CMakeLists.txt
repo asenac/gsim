@@ -85,8 +85,8 @@ if (QT_FOUND)
     add_subdirectory(qt)
 
     # Qwt
-    find_package(Qwt6)
-    if (Qwt6_FOUND)
+    find_package(Qwt)
+    if (QWT_FOUND)
         # gsim_qwt
         add_subdirectory(qwt)
     endif()

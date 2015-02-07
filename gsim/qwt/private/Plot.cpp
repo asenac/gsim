@@ -54,9 +54,9 @@ Plot::Plot(QWidget *parent):
             std::numeric_limits< short >::max());
 
     // canvas
-    canvas()->setLineWidth(1);
-    canvas()->setFrameStyle(QFrame::Box | QFrame::Plain);
-    canvas()->setBorderRadius(15);
+    //canvas()->setLineWidth(1);
+    //canvas()->setFrameStyle(QFrame::Box | QFrame::Plain);
+    //canvas()->setBorderRadius(15);
 
     QPalette canvasPalette(Qt::white);
     canvasPalette.setColor( 
