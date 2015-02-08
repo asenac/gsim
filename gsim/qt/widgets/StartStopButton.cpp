@@ -27,7 +27,7 @@ StartStopButton::StartStopButton(QWidget* parent)
     m_startIcon = style()->standardIcon(QStyle::SP_MediaPlay);
     m_stopIcon = style()->standardIcon(QStyle::SP_MediaStop);
 
-    m_startIcon = QIcon(m_stopIcon.pixmap(QSize(15, 15)));
+    m_startIcon = QIcon(m_startIcon.pixmap(QSize(15, 15)));
     m_stopIcon = QIcon(m_stopIcon.pixmap(QSize(15, 15)));
 
     setStyleSheet("QPushButton { padding: 5px;}");
