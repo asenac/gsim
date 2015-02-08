@@ -99,94 +99,153 @@ bool GenericConnection::applyConfig(ConnectionConfig_ptr cfg)
 
 bool GenericConnection::Data::applyConfig(ConnectionConfig_ptr cfg_)
 {
-    bool res = false;
+    clear();
 
     if (!cfg_)
-    {
-        connection.reset();
-        this_->setStatus(kStatusDisconnected);
+        return true;
 
-        res = true;
-    }
-    else  // if (connection.isNull())
-    {
-        UDPConnectionConfig* udpCfg =
-            dynamic_cast<UDPConnectionConfig*>(cfg_.get());
+    UDPConnectionConfig* udpCfg =
+        dynamic_cast<UDPConnectionConfig*>(cfg_.get());
 
-        if (udpCfg)
+    if (udpCfg)
+    {
+        QUdpSocket* socket = new QUdpSocket(this);
+        connection.reset(socket);
+
+        const QHostAddress localHost(udpCfg->localHost.c_str());
+        if (!socket->bind(localHost, udpCfg->localPort))
         {
-            QUdpSocket* socket = new QUdpSocket(this);
+            clear();
+
+            emit this_->error(QString("Cannot use local UDP endpoint %1:%2")
+                                  .arg(localHost.toString())
+                                  .arg(udpCfg->localPort));
+            return false;
+        }
+
+        // XXX connectToHost resets local portd due to a bug
+        // https://bugreports.qt.io/browse/QTBUG-26538
+        // const QHostAddress remoteHost(udpCfg->remoteHost.c_str());
+        // socket->connectToHost(remoteHost, udpCfg->remotePort);
+
+        connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
+                this, SLOT(stateChanged(QAbstractSocket::SocketState)));
+        connect(socket, SIGNAL(readyRead()), this, SLOT(readPendingDataUDP()));
+
+        this_->setStatus(kStatusConnected);
+    }
+    else
+    {
+        TCPConnectionConfig* tcpCfg =
+            dynamic_cast< TCPConnectionConfig*>(cfg_.get());
+
+        if (tcpCfg && tcpCfg->isServer)
+        {
+            const QHostAddress host(tcpCfg->host.c_str());
+            tcpServer.reset(new QTcpServer(this));
+
+            connect(tcpServer.data(), SIGNAL(newConnection()), this,
+                    SLOT(handleNewConnection()));
+
+            if (!tcpServer->listen(host, tcpCfg->port))
+            {
+                clear();
+
+                emit this_->error(
+                    QString("Cannot use local TCP endpoint %1:%2")
+                        .arg(host.toString())
+                        .arg(tcpCfg->port));
+
+                return false;
+            }
+
+            this_->setStatus(kStatusListening);
+        }
+        else if (tcpCfg)
+        {
+            QTcpSocket* socket = new QTcpSocket(this);
             connection.reset(socket);
 
-            const QHostAddress localHost(udpCfg->localHost.c_str());
-            if (!socket->bind(localHost, udpCfg->localPort))
-            {
-                this_->setStatus(kStatusDisconnected);
-                connection.reset();
+            connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
+                    this, SLOT(stateChanged(QAbstractSocket::SocketState)));
+            connect(socket, SIGNAL(readyRead()), this,
+                    SLOT(readPendingDataTCP()));
+            connect(socket, SIGNAL(connected()), this,
+                    SLOT(handleConnect()));
 
-                emit this_->error(QString("Cannot use local UDP endpoint %1:%2")
-                                      .arg(localHost.toString())
-                                      .arg(udpCfg->localPort));
-            }
-            else
-            {
-                // XXX connectToHost resets local portd due to a bug
-                // https://bugreports.qt.io/browse/QTBUG-26538
-                // const QHostAddress remoteHost(udpCfg->remoteHost.c_str());
-                // socket->connectToHost(remoteHost, udpCfg->remotePort);
-
-                connect(socket,
-                        SIGNAL(stateChanged(QAbstractSocket::SocketState)),
-                        this, SLOT(stateChanged(QAbstractSocket::SocketState)));
-
-                connect(socket, SIGNAL(readyRead()), this,
-                        SLOT(readPendingDataUDP()));
-
-                this_->setStatus(kStatusConnected);
-
-                res = true;
-            }
-        }
-        else
-        {
-            ::gsim::qt::TCPConnectionConfig* tcpCfg =
-                dynamic_cast< ::gsim::qt::TCPConnectionConfig*>(cfg_.get());
-
-            if (tcpCfg)
-            {
-                // TODO
-            }
+            socket->connectToHost(tcpCfg->host.c_str(), tcpCfg->port);
         }
     }
 
-    if (res)
-        cfg = cfg_;
-    else
-        cfg.reset();
+    return true;
+}
 
-    return res;
+void GenericConnection::Data::clear()
+{
+    cfg.reset();
+    connection.reset();
+    tcpServer.reset();
+    this_->setStatus(kStatusDisconnected);
+}
+
+void GenericConnection::Data::handleNewConnection()
+{
+    QTcpSocket* socket = NULL;
+    while ((socket = tcpServer->nextPendingConnection()))
+    {
+        connect(socket, SIGNAL(readyRead()), this, SLOT(readPendingDataTCP()));
+        connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
+                this, SLOT(stateChanged(QAbstractSocket::SocketState)));
+
+        connection.reset(socket);
+        this_->setStatus(kStatusConnected);
+    }
+}
+
+void GenericConnection::Data::handleConnect()
+{
+    this_->setStatus(kStatusConnected);
+}
+
+void GenericConnection::Data::readPendingDataTCP()
+{
+    if (connection.isNull())
+        return;
+
+    QTcpSocket* socket = static_cast<QTcpSocket*>(connection.data());
+
+    int offset = buffer.size();
+    int avail = socket->bytesAvailable();
+
+    buffer.resize(offset + avail);
+
+    socket->read(buffer.data() + offset, avail);
+
+    std::size_t consume = this_->processData(buffer.data(), buffer.size());
+
+    buffer.resize(consume);
 }
 
 void GenericConnection::Data::readPendingDataUDP()
 {
-    if (!connection.isNull())
+    if (connection.isNull())
+        return;
+
+    QUdpSocket* socket = static_cast<QUdpSocket*>(connection.data());
+
+    while (socket->hasPendingDatagrams())
     {
-        QUdpSocket* socket = static_cast<QUdpSocket*>(connection.data());
+        int offset = buffer.size();
+        int avail = socket->pendingDatagramSize();
 
-        while (socket->hasPendingDatagrams())
-        {
-            int offset = buffer.size();
-            int avail = socket->pendingDatagramSize();
+        buffer.resize(offset + avail);
 
-            buffer.resize(offset + avail);
+        socket->readDatagram(buffer.data() + offset, avail);
 
-            socket->readDatagram(buffer.data() + offset, avail);
+        // std::size_t consume =
+        this_->processData(buffer.data(), buffer.size());
 
-            // std::size_t consume =
-            this_->processData(buffer.data(), buffer.size());
-
-            buffer.resize(0);
-        }
+        buffer.resize(0);
     }
 }
 

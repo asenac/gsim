@@ -49,11 +49,23 @@ public:
 
 public slots:
 
-    void readPendingDataUDP();
-
     void stateChanged(QAbstractSocket::SocketState socketState);
 
+    //
+    // UDP
+    //
+    void readPendingDataUDP();
+
+    //
+    // TCP
+    //
+    void handleNewConnection();
+    void handleConnect();
+    void readPendingDataTCP();
+
 protected:
+
+    void clear();
 
     friend class GenericConnection;
 
@@ -63,6 +75,7 @@ protected:
     GenericConnection * this_;
 
     socket_ptr connection;
+    server_ptr tcpServer;
     ConnectionConfig_ptr cfg;
 
     QByteArray buffer;
