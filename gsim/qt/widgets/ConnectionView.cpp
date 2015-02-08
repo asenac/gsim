@@ -33,12 +33,11 @@ using namespace gsim::qt;
 
 struct ConnectionView::Data
 {
-
-    Data(Connection_ptr con_) :
-        connection(con_), 
-        menu(new QMenu(con_->name())),
-        statusWidget(new ::gsim::qt::ConnectionStatusWidget(con_)),
-        statusTool(NULL)
+    Data(Connection_ptr con_)
+        : connection(con_),
+          menu(new QMenu(con_->name())),
+          statusWidget(new ::gsim::qt::ConnectionStatusWidget(con_)),
+          statusTool(NULL)
     {
     }
 
@@ -48,7 +47,7 @@ struct ConnectionView::Data
         delete statusWidget;
 
         // Delete dialogs
-        for (unsigned int i = 0; i < dialogs.size(); i++) 
+        for (unsigned int i = 0; i < dialogs.size(); i++)
         {
             delete dialogs[i];
             delete subwindows[i];
@@ -58,50 +57,44 @@ struct ConnectionView::Data
     }
 
     Connection_ptr connection;
-    QMenu * menu;
-    QWidget * statusWidget;
+    QMenu* menu;
+    QWidget* statusWidget;
 
-    QSignalMapper * senderDialogMapper;
+    QSignalMapper* senderDialogMapper;
 
-    std::vector< QWidget * > dialogs;
-    std::vector< QMdiSubWindow * > subwindows;
+    std::vector<QWidget*> dialogs;
+    std::vector<QMdiSubWindow*> subwindows;
 
-    ::gsim::qt::ConnectionWidget * connectionWidget; 
-    QDockWidget * connectionDockWidget;
+    ::gsim::qt::ConnectionWidget* connectionWidget;
+    QDockWidget* connectionDockWidget;
 
-    StatusTool * statusTool;
+    StatusTool* statusTool;
 };
 
-ConnectionView::ConnectionView(Connection_ptr con,
-        QObject * parent) :
-    QObject(parent), m_data(new Data(con))
+ConnectionView::ConnectionView(Connection_ptr con, QObject* parent)
+    : QObject(parent), m_data(new Data(con))
 {
     using namespace gsim::qt;
 
     // Connection Widget
     {
-        ConnectionWidgetFactory * factory = 
-            ConnectionWidgetFactory::instance();
+        ConnectionWidgetFactory* factory = ConnectionWidgetFactory::instance();
 
         // Crea un widget asociado con su tipo
-        m_data->connectionWidget = 
-            factory->createWidget(con->type(), NULL);
-        m_data->connectionDockWidget = new QDockWidget(
-                QString("%1 configuration").arg(con->name()));
+        m_data->connectionWidget = factory->createWidget(con->type(), NULL);
+        m_data->connectionDockWidget =
+            new QDockWidget(QString("%1 configuration").arg(con->name()));
         m_data->connectionDockWidget->setWidget(m_data->connectionWidget);
 
         // Conecta la señal que configurará la conexión
-        connect(m_data->connectionWidget, 
-                SIGNAL(applyConfig(ConnectionConfig_ptr)),
-                con.get(), 
+        connect(m_data->connectionWidget,
+                SIGNAL(applyConfig(ConnectionConfig_ptr)), con.get(),
                 SLOT(setConfig(ConnectionConfig_ptr)));
 
-        connect(con.get(), 
-                SIGNAL(statusChanged(ConnectionStatus)),
+        connect(con.get(), SIGNAL(statusChanged(ConnectionStatus)),
                 m_data->connectionWidget,
                 SLOT(statusChanged(ConnectionStatus)));
-        connect(con.get(), 
-                SIGNAL(configChanged(ConnectionConfig_ptr)),
+        connect(con.get(), SIGNAL(configChanged(ConnectionConfig_ptr)),
                 m_data->connectionWidget,
                 SLOT(configChanged(ConnectionConfig_ptr)));
 
@@ -110,28 +103,26 @@ ConnectionView::ConnectionView(Connection_ptr con,
     }
 
     m_data->senderDialogMapper = new QSignalMapper(this);
-    connect(m_data->senderDialogMapper, SIGNAL(mapped(int)),
-            this, SLOT(showSenderDialog(int)));
+    connect(m_data->senderDialogMapper, SIGNAL(mapped(int)), this,
+            SLOT(showSenderDialog(int)));
 
-    m_data->menu->addAction("Configuration",
-            this, SLOT(showConfig()));
+    m_data->menu->addAction("Configuration", this, SLOT(showConfig()));
 
-    QMenu * sendMenu = m_data->menu->addMenu("Send messages");
+    QMenu* sendMenu = m_data->menu->addMenu("Send messages");
 
-    const ::gsim::core::descriptor_group_ptr out_ =
-        con->descriptor()->out();
+    const ::gsim::core::descriptor_group_ptr out_ = con->descriptor()->out();
 
     unsigned int count = out_->get_descriptor_count();
     m_data->dialogs.resize(count, NULL);
     m_data->subwindows.resize(count, NULL);
 
-    for (unsigned int i = 0; i < count; i++) 
+    for (unsigned int i = 0; i < count; i++)
     {
-        QAction * act = 
+        QAction* act =
             sendMenu->addAction(out_->get_descriptor_name(i).c_str(),
-                    m_data->senderDialogMapper, SLOT(map()));
+                                m_data->senderDialogMapper, SLOT(map()));
 
-        m_data->senderDialogMapper->setMapping(act, (int) i);
+        m_data->senderDialogMapper->setMapping(act, (int)i);
     }
 
     /*
@@ -140,21 +131,20 @@ ConnectionView::ConnectionView(Connection_ptr con,
      */
 
     // Status Tool
-    StatusManager * statusManager = con->statusManager();
+    StatusManager* statusManager = con->statusManager();
     if (statusManager)
     {
         m_data->menu->addSeparator();
 
-        QMainWindow * mainWindow = qobject_cast< QMainWindow * >(parent);
-        QMdiArea * mdiArea = 
-            qobject_cast< QMdiArea * >(mainWindow->centralWidget());
+        QMainWindow* mainWindow = qobject_cast<QMainWindow*>(parent);
+        QMdiArea* mdiArea =
+            qobject_cast<QMdiArea*>(mainWindow->centralWidget());
 
-        QMdiSubWindow * subWindow = new QMdiSubWindow(mdiArea);
-        m_data->statusTool = 
-            new StatusTool(con, static_cast< QWidget * >(parent));
+        QMdiSubWindow* subWindow = new QMdiSubWindow(mdiArea);
+        m_data->statusTool = new StatusTool(con, static_cast<QWidget*>(parent));
         subWindow->setWidget(m_data->statusTool);
 
-        QAction * action = 
+        QAction* action =
             m_data->menu->addAction("Status", subWindow, SLOT(showNormal()));
         connect(action, SIGNAL(triggered()), subWindow, SLOT(raise()));
         connect(action, SIGNAL(triggered()), m_data->statusTool, SLOT(show()));
@@ -167,32 +157,20 @@ ConnectionView::ConnectionView(Connection_ptr con,
     }
 }
 
-ConnectionView::~ConnectionView()
-{
-    delete m_data;
-}
+ConnectionView::~ConnectionView() { delete m_data; }
 
-Connection_ptr ConnectionView::connection() const
-{
-    return m_data->connection;
-}
+Connection_ptr ConnectionView::connection() const { return m_data->connection; }
 
-QMenu * ConnectionView::menu() const
-{
-    return m_data->menu;
-}
+QMenu* ConnectionView::menu() const { return m_data->menu; }
 
-QWidget * ConnectionView::statusWidget() const
-{
-    return m_data->statusWidget;
-}
+QWidget* ConnectionView::statusWidget() const { return m_data->statusWidget; }
 
-QWidget * ConnectionView::connectionWidget() const
+QWidget* ConnectionView::connectionWidget() const
 {
     return m_data->connectionWidget;
 }
 
-QDockWidget * ConnectionView::connectionDockWidget() const
+QDockWidget* ConnectionView::connectionDockWidget() const
 {
     return m_data->connectionDockWidget;
 }
@@ -201,9 +179,9 @@ void ConnectionView::showSenderDialog(int idx)
 {
     if (!m_data->dialogs[idx])
     {
-        ::gsim::core::descriptor_ptr descriptor = 
-            m_data->connection->descriptor()->out(
-                    )->get_descriptor_by_index(idx);
+        ::gsim::core::descriptor_ptr descriptor =
+            m_data->connection->descriptor()->out()->get_descriptor_by_index(
+                idx);
 
         const QString name = getMessageName(descriptor);
 
@@ -215,26 +193,23 @@ void ConnectionView::showSenderDialog(int idx)
         connect(m_data->dialogs[idx], SIGNAL(sendMessage(Message_ptr)),
                 m_data->connection.get(), SLOT(sendMessage(Message_ptr)));
 #else
-        MessageSender * sender = new MessageSender(m_data->connection);
+        MessageSender* sender = new MessageSender(m_data->connection);
         sender->initialize(name, descriptor);
         m_data->dialogs[idx] = sender;
 #endif
 
         // Window title
         m_data->dialogs[idx]->setWindowTitle(
-                QString("%1: %2")
-                    .arg(m_data->connection->name())
-                    .arg(name));
+            QString("%1: %2").arg(m_data->connection->name()).arg(name));
 
-        QMainWindow * mainWindow = qobject_cast< QMainWindow * >(parent());
-        QMdiArea * mdiArea = 
-            qobject_cast< QMdiArea * >(mainWindow->centralWidget());
+        QMainWindow* mainWindow = qobject_cast<QMainWindow*>(parent());
+        QMdiArea* mdiArea =
+            qobject_cast<QMdiArea*>(mainWindow->centralWidget());
 
-        QMdiSubWindow * subWindow = new QMdiSubWindow(mdiArea);
+        QMdiSubWindow* subWindow = new QMdiSubWindow(mdiArea);
         subWindow->setWidget(m_data->dialogs[idx]);
         mdiArea->addSubWindow(subWindow);
         m_data->subwindows[idx] = subWindow;
-
     }
     m_data->dialogs[idx]->show();
     m_data->subwindows[idx]->show();
@@ -255,25 +230,24 @@ void ConnectionView::load(const QVariant& settings)
     const QVariantMap map = settings.toMap();
     const QVariantMap send = map["Send messages"].toMap();
 
-    const ::gsim::core::descriptor_group_ptr out_ = 
+    const ::gsim::core::descriptor_group_ptr out_ =
         m_data->connection->descriptor()->out();
 
-    for (unsigned int i = 0; i < out_->get_descriptor_count(); i++) 
+    for (unsigned int i = 0; i < out_->get_descriptor_count(); i++)
     {
-        const QString name = 
-            getMessageName(out_->get_descriptor_by_index(i));
+        const QString name = getMessageName(out_->get_descriptor_by_index(i));
 
         const QVariantMap::const_iterator it = send.find(name);
 
         if (it != send.end())
         {
             // No debería mostrarse, solo cargar la configuración
-            showSenderDialog((int) i);
+            showSenderDialog((int)i);
 
             if (m_data->dialogs[i])
             {
-                MessageSender * sender = 
-                    static_cast< MessageSender * >(m_data->dialogs[i]);
+                MessageSender* sender =
+                    static_cast<MessageSender*>(m_data->dialogs[i]);
 
                 sender->load(it.value());
             }
@@ -289,15 +263,14 @@ void ConnectionView::save(QVariant& settings)
     QVariantMap map;
     QVariantMap send;
 
-    for (unsigned int i = 0; i < m_data->dialogs.size(); i++) 
+    for (unsigned int i = 0; i < m_data->dialogs.size(); i++)
     {
         if (m_data->dialogs[i])
         {
-            MessageSender * sender = 
-                static_cast< MessageSender * >(m_data->dialogs[i]);
+            MessageSender* sender =
+                static_cast<MessageSender*>(m_data->dialogs[i]);
 
-            const QString name = 
-                getMessageName(sender->getReflective());
+            const QString name = getMessageName(sender->getReflective());
 
             sender->save(send[name]);
         }
@@ -313,10 +286,8 @@ void ConnectionView::save(QVariant& settings)
 
 void ConnectionView::loadStatus()
 {
-    const QString file = 
-        QFileDialog::getOpenFileName(0,
-                "Select a file", ".",
-                tr("GSIM status file (*.status)"));
+    const QString file = QFileDialog::getOpenFileName(
+        0, "Select a file", ".", tr("GSIM status file (*.status)"));
 
     if (!file.isEmpty())
     {
@@ -327,18 +298,14 @@ void ConnectionView::loadStatus()
 
 void ConnectionView::saveStatus()
 {
-    QString file = 
-        QFileDialog::getSaveFileName(0, 
-                "Select a file", ".",
-                tr("GSIM status file (*.status)"));
+    QString file = QFileDialog::getSaveFileName(
+        0, "Select a file", ".", tr("GSIM status file (*.status)"));
 
     if (!file.isEmpty())
     {
-        if(!file.endsWith(".status"))
-            file.append(".status");
+        if (!file.endsWith(".status")) file.append(".status");
 
         // es thread-safe
         m_data->connection->statusManager()->dump(file);
     }
 }
-

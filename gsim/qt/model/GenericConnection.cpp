@@ -26,13 +26,12 @@ namespace
 {
     ConnectionStatus translate(QAbstractSocket::SocketState st)
     {
-        ConnectionStatus res = kStatusDisconnected;
+        ConnectionStatus res = kStatusListening;
 
         switch (st)
         {
-            case QAbstractSocket::ConnectingState:
-            case QAbstractSocket::BoundState:
-                res = kStatusListening;
+            case QAbstractSocket::UnconnectedState:
+                res = kStatusDisconnected;
                 break;
             case QAbstractSocket::ConnectedState:
                 res = kStatusConnected;
