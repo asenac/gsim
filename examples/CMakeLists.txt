@@ -8,7 +8,6 @@ set(GSIM_EXAMPLES
     empty_connection_udp
     multiconnection
     simple
-    simple_adapted
     simple_custom_widget
     simple_unsupported
     status
