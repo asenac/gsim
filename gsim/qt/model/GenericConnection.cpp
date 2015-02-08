@@ -284,7 +284,7 @@ void GenericConnection::Data::stateChanged(
         ConnectionStatus status = translate(socketState);
         this_->setStatus(status);
 
-        if (status == kStatusDisconnected)
+        if (socketState == QAbstractSocket::UnconnectedState)
         {
             clear();
         }
