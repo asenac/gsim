@@ -183,8 +183,10 @@ bool GenericConnection::Data::applyConfig(ConnectionConfig_ptr cfg_)
 void GenericConnection::Data::clear()
 {
     cfg.reset();
-    connection.reset();
-    tcpServer.reset();
+    if (!connection.isNull())
+        connection.take()->deleteLater();
+    if (!tcpServer.isNull())
+        tcpServer.take()->deleteLater();
     this_->setStatus(kStatusDisconnected);
 }
 
@@ -223,7 +225,11 @@ void GenericConnection::Data::readPendingDataTCP()
 
     std::size_t consume = this_->processData(buffer.data(), buffer.size());
 
-    buffer.resize(consume);
+    int remaining = buffer.size() - consume;
+    if (remaining)
+        buffer.remove(0, consume);
+    else
+        buffer.clear();
 }
 
 void GenericConnection::Data::readPendingDataUDP()
@@ -252,5 +258,22 @@ void GenericConnection::Data::readPendingDataUDP()
 void GenericConnection::Data::stateChanged(
     QAbstractSocket::SocketState socketState)
 {
-    this_->setStatus(translate(socketState));
+    if (connection.isNull())
+        return;
+
+    if (!tcpServer.isNull() && socketState == QAbstractSocket::UnconnectedState)
+    {
+        connection.take()->deleteLater();
+        this_->setStatus(kStatusListening);
+    }
+    else
+    {
+        ConnectionStatus status = translate(socketState);
+        this_->setStatus(status);
+
+        if (status == kStatusDisconnected)
+        {
+            clear();
+        }
+    }
 }
