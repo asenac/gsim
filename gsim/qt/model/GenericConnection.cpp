@@ -251,7 +251,7 @@ void GenericConnection::Data::readPendingDataUDP()
         // std::size_t consume =
         this_->processData(buffer.data(), buffer.size());
 
-        buffer.resize(0);
+        buffer.clear();
     }
 }
 
