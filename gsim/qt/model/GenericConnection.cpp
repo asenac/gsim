@@ -192,12 +192,23 @@ void GenericConnection::Data::clear()
 
 void GenericConnection::Data::handleNewConnection()
 {
+    if (tcpServer.isNull())
+        return;
+
     QTcpSocket* socket = NULL;
     while ((socket = tcpServer->nextPendingConnection()))
     {
         connect(socket, SIGNAL(readyRead()), this, SLOT(readPendingDataTCP()));
         connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
                 this, SLOT(stateChanged(QAbstractSocket::SocketState)));
+
+        if (!connection.isNull())
+        {
+            connection.take()->deleteLater();
+
+            // TODO display warning indicating that a previous client
+            // was disconnected
+        }
 
         connection.reset(socket);
         this_->setStatus(kStatusConnected);
@@ -258,7 +269,7 @@ void GenericConnection::Data::readPendingDataUDP()
 void GenericConnection::Data::stateChanged(
     QAbstractSocket::SocketState socketState)
 {
-    if (connection.isNull())
+    if (connection.isNull() || connection.data() != sender())
         return;
 
     if (!tcpServer.isNull() && socketState == QAbstractSocket::UnconnectedState)
