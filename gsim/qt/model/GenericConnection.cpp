@@ -101,6 +101,8 @@ bool GenericConnection::Data::applyConfig(ConnectionConfig_ptr cfg_)
 {
     clear();
 
+    cfg = cfg_;
+
     if (!cfg_)
         return true;
 
