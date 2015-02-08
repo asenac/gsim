@@ -11,6 +11,7 @@ set(GSIM_EXAMPLES
     simple_custom_widget
     simple_unsupported
     status
+    tcp
 )
 
 foreach(example_ ${GSIM_EXAMPLES})
